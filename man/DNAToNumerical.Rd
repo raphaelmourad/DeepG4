@@ -4,7 +4,12 @@
 \alias{DNAToNumerical}
 \title{Convert DNAStringSet object into one-hot encoding}
 \usage{
-DNAToNumerical(x, tabv = c(N = 5, T = 4, G = 3, C = 2, A = 1), lower.case = F)
+DNAToNumerical(
+  x,
+  tabv = c(N = 5, T = 4, G = 3, C = 2, A = 1),
+  lower.case = F,
+  seq.size = 201
+)
 }
 \arguments{
 \item{x}{DNAStringSet object}
@@ -12,6 +17,8 @@ DNAToNumerical(x, tabv = c(N = 5, T = 4, G = 3, C = 2, A = 1), lower.case = F)
 \item{tabv}{named vector list of numerical values which indicate the numerical value of a nucleotide.}
 
 \item{lower.case}{Set to \code{TRUE} if the DNA in your sequence is encoded in lower.case i.e. "acgt", default set to \code{FALSE}.}
+
+\item{seq.size}{Set the sequence maximal length value authorized by our model (default to 201).}
 }
 \value{
 An array of dimension \code{nrow(x),ncol(x),length(tabv)}

@@ -3,6 +3,7 @@
 #' @param x DNAStringSet object
 #' @param tabv named vector list of numerical values which indicate the numerical value of a nucleotide.
 #' @param lower.case Set to \code{TRUE} if the DNA in your sequence is encoded in lower.case i.e. "acgt", default set to \code{FALSE}.
+#' @param seq.size Set the sequence maximal length value authorized by our model (default to 201).
 #'
 #' @return An array of dimension \code{nrow(x),ncol(x),length(tabv)}
 #'
@@ -21,6 +22,9 @@ DNAToNumerical <- function(x,tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1),lower.case=
         nuc_value <- names(tabv[i])
         mat <- matrix(0,nrow(x),ncol(x))
         mat[x==nuc_value] <- 1
+        if(ncol(x)<seq.size){
+            mat <- cbind(mat,matrix(0,nrow(x),seq.size-ncol(x)))
+        }
         listMat[[nuc_index]] <- mat
     }
     arrayout <- array(unlist(listMat), dim = c(nrow(listMat[[1]]), ncol(listMat[[1]]), length(listMat)))
