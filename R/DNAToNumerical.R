@@ -7,9 +7,10 @@
 #' @return An array of dimension \code{nrow(x),ncol(x),length(tabv)}
 #'
 #' @examples
-#' x <- DNAStringSet(c("ACGT"))
-#'
-DNAToNumerical <- function(x,tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1),lower.case=F){
+#' x <- Biostrings::DNAStringSet(c("ACGT"))
+#' x_onehot <- DNAToNumerical(x)
+#' x_onehot
+DNAToNumerical <- function(x,tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1),lower.case=F,seq.size = 201){
     if(lower.case){
         names(tabv) <- tolower(tabv)
     }
