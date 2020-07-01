@@ -12,7 +12,8 @@ Imports:
     keras,
     Biostrings
 Suggests: 
-    ggplot2
+    ggplot2,
+    yardstick
 Depends: 
-    R (>= 2.10)
+    R (>= 3.6.3)
 RoxygenNote: 7.1.1
