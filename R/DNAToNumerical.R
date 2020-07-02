@@ -6,7 +6,7 @@
 #' @param seq.size Set the sequence maximal length value authorized by our model (default to 201).
 #'
 #' @return An array of dimension \code{nrow(x),ncol(x),length(tabv)}
-#'
+#' @export
 #' @examples
 #' x <- Biostrings::DNAStringSet(c("ACGT"))
 #' x_onehot <- DNAToNumerical(x)

@@ -1,0 +1,133 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# **DeepG4**: A deep learning approach to predict active G-quadruplexes
+
+<!-- badges: start -->
+
+<!-- badges: end -->
+
+**DeepG4** is a deep learning model build in keras+tensorflow who aims
+to predict the probability of DNA sequences to form G-Guadruplexes
+secondary structures. **DeepG4** is wrapped in a R package, but can work
+with any langage that has implemented keras and tensorflow (see below).
+
+## Abstract
+
+DNA is a complex molecule carrying the instructions an organism needs to
+develop, live and reproduce. In 1953, Watson and Crick discovered that
+DNA is composed of two chains forming a double-helix. Later on, other
+structures of DNA were discovered and shown to play important roles in
+the cell, in particular G-quadruplex (G4). Following genome sequencing,
+several bioinformatic algorithms were developed to map G4s in vitro
+based on a canonical sequence motif, G-richness and G-skewness or
+alternatively sequence features including k-mers. Here, we propose
+instead a convolutional neural network (DeepG4) to map active G4s
+(forming both in vitro and in vivo). DeepG4 is very accurate to predict
+active G4s, while state-of-the-art algorithms fail. Moreover, DeepG4
+identifies key DNA motifs that are predictive of G4 activity. We found
+that active G4 motifs do not follow a very flexible sequence pattern as
+current algorithms seek for. Instead, active G4s are determined by
+numerous specific motifs. Moreover, among those motifs, we identified
+known transcription factors which could play important roles in G4
+activity by either directly contributing to G4 structure themselves or
+by participating in G4 formation in the vicinity. Lastly, variant
+analysis suggests that SNPs altering predicted G4 activity could affect
+transcription and chromatin, e.g. gene expression, H3K4me3 mark and DNA
+methylation. Thus, DeepG4 paves the way for future studies assessing the
+impact of known disease-associated variants on DNA secondary structure
+and provides a mechanistic interpretation of SNP impact on transcription
+and chromatin.
+
+## Installation
+
+You can install the development version from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("morphos30/DeepG4")
+```
+
+## Usage with DeepG4 R package
+
+``` r
+library(Biostrings)
+library(DeepG4)
+
+sequences <- system.file("extdata", "test_G4_data.fa", package = "DeepG4")
+sequences <- readDNAStringSet(sequences)
+
+predictions <- DeepG4(sequences)
+head(predictions)
+```
+
+## Using our model directly with keras in R
+
+Using our model with keras is very simple, the code is very similar, but
+you have to convert youre sequence in one-hot first. To help you, our
+function `readDNAStringSet` help you to do it.
+
+``` r
+
+library(Biostrings)
+library(DeepG4)
+library(keras)
+
+sequences <- system.file("extdata", "test_G4_data.fa", package = "DeepG4")
+sequences <- readDNAStringSet(sequences)
+
+model <- system.file("extdata", "model.hdf5", package = "DeepG4")
+model <- load_model_hdf5(model)
+
+sequences <- DNAToNumerical(sequences)
+
+predictions <- predict(model,sequences)
+```
+
+## Using DeepG4 with a new active G4 dataset
+
+If you want to use our model architecture, but retrain with your own
+dataset, you can do it by running our function `DeepG4` with `retrain =
+TRUE`
+
+``` r
+
+library(Biostrings)
+library(DeepG4)
+library(rsample)
+
+# Read positive and segative set of sequences 
+sequences.pos <- readDNAStringSet("Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b.Fa")
+sequences.ctrl <- readDNAStringSet("Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM.Fa")
+sequences <- c(sequences.pos,sequences.ctrl)
+# Generate classes
+Y <- c(rep(1,length(sequences.pos)),rep(0,length(sequences.ctrl)))
+```
+
+It’s a good idea to split your dataset in train/test to evaluate the
+model performance on the testing dataset.
+
+``` r
+#  Sample dataset and get test and train dataset
+smp_size <- floor(0.70 * length(sequences))
+train_ind <- sample(seq_len(length(sequences)), size = smp_size)
+x.train <- sequences[train_ind]
+x.test <- sequences[-train_ind]
+y.train <- Y[train_ind]
+y.test <- Y[-train_ind]
+```
+
+Then train your model on your training dataset
+:
+
+``` r
+training <- DeepG4(x.train,y.train,retrain=TRUE,retrain.path = "DeepG4_retrained.hdf5")
+```
+
+You can now evaluate it with your testing dataset :
+
+``` r
+predictions <- DeepG4(x.test,y.test,model = "DeepG4_retrained.hdf5")
+predictions
+```
