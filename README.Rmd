@@ -12,6 +12,9 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
+
+[logo](logo.svg)
+
 # __DeepG4__: A deep learning approach to predict active G-quadruplexes
 
 <!-- badges: start -->
