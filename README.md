@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[logo](logo.svg)
+![logo](logo.svg)
 
 # **DeepG4**: A deep learning approach to predict active G-quadruplexes
 
