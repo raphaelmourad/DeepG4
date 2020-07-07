@@ -68,7 +68,7 @@ head(predictions)
 
 Using our model with keras is very simple, the code is very similar, but
 you have to convert youre sequence in one-hot first. To help you, our
-function `readDNAStringSet` help you to do it.
+function `DNAToNumerical` help you to do it.
 
 ``` r
 
