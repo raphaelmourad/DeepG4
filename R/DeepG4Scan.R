@@ -37,7 +37,7 @@ DeepG4Scan <- function(X=NULL,seq.size = 201,treshold = 0.5,model = NULL){
         }
     }else if(class(X)[[1]] =="DNAStringSetList"){
         X <- unlist(Biostrings::DNAStringSetList(X))
-    }else{
+    }else if(!class(X)[[1]] =="DNAStringSet"){
         stop("X must be a character, a list or a DNAString/DNAStringSet/DNAStringSetList",
              call. = FALSE)
     }
@@ -49,13 +49,15 @@ DeepG4Scan <- function(X=NULL,seq.size = 201,treshold = 0.5,model = NULL){
             end <- ifelse(end>length(x),length(x),end)
             Viewseq <- Biostrings::Views(x, start=start, end=end)
             sequences <- Biostrings::DNAStringSet(Viewseq)
-            predictions <- DeepG4(X = sequences,seq.size = seq.size,model = model)
 
-            results <- cbind(index = i,as.data.frame(IRanges::ranges(Viewseq)),seq=as.character(Viewseq),predictions = predictions[,1])
-            results <- results[results$predictions>treshold,]
+            results <- cbind(index = i,as.data.frame(IRanges::ranges(Viewseq)),seq=as.character(Viewseq))
+
             return(results)
         })
         results <- do.call(rbind,results)
+        predictions <- DeepG4(X = as.character(results$seq),seq.size = seq.size,model = model)
+        results$predictions <- predictions[,1]
+        results <- results[results$predictions>treshold,]
     }else{
         if(class(X)[[1]] =="DNAStringSet"){
             X<- X[[1]]
