@@ -1,6 +1,6 @@
 #' DeepG4 main function to predict a probability to form a G4, given a DNA sequence.
 #'
-#' @param X a character, a list or a DNAStringSet/DNAStringSetList of DNA sequences.
+#' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
 #' @param Y a numeric vector of 1 and 0 values (default to NULL).
 #' @param model a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.
 #' @param tabv a named vector of numeric values representing the DNA to numerical conversion. Don't change it unless you want to use our function with a custom model.
