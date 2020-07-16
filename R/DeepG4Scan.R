@@ -38,13 +38,10 @@ DeepG4Scan <- function(X=NULL,k=20,seq.size = 201,treshold = 0.5,model = NULL){
         }
     }else if(class(X)[[1]] =="DNAStringSetList"){
         X <- unlist(Biostrings::DNAStringSetList(X))
-    }else if(!class(X)[[1]] =="DNAStringSet"){
-        stop("X must be a character, a list or a DNAString/DNAStringSet/DNAStringSetList",
-             call. = FALSE)
     }
     ## Check DNA composition
     message("Check sequences composition...")
-    resFreq <- letterFrequency(X,"N",as.prob = T)
+    resFreq <- Biostrings::letterFrequency(X,"N",as.prob = T)
     testNFreq <- as.vector(resFreq>0.1)
     if(any(testNFreq)){
         message(paste0("Warning: Some of your sequences (",paste(testNFreq,collapse=", "),")have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
@@ -55,7 +52,7 @@ DeepG4Scan <- function(X=NULL,k=20,seq.size = 201,treshold = 0.5,model = NULL){
         X <- X[!testNFreq]
 
     }
-    if(length(X)>1){
+    if(class(X)[[1]] !="DNAString"&&length(X)>1){
         results <- lapply(1:length(X),function(i){
             x <- X[i][[1]]
             results <- cbind(seqnames= i,ExtractSubSequence(x=x,k=k,seq.size = seq.size))
