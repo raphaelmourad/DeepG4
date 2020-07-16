@@ -65,8 +65,21 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
     message("Check sequences sizes...")
     seqsizes <- unique(Biostrings::nchar(X))
     if(max(seqsizes) > seq.size){
-        message(paste0("Warning:: Some of your sequences are >",seq.size,", and will be croped."))
+        message(paste0("Warning: Some of your sequences are >",seq.size,", and will be croped."))
         X[(Biostrings::nchar(X)>seq.size & !Biostrings::nchar(X)<seq.size)] <- Biostrings::subseq(X[(Biostrings::nchar(X)>seq.size & !Biostrings::nchar(X)<seq.size)],start = 1,end = seq.size)
+    }
+    ## Check DNA composition
+    message("Check sequences composition...")
+    resFreq <- letterFrequency(X,"N",as.prob = T)
+    testNFreq <- as.vector(resFreq>0.1)
+    if(any(testNFreq)){
+        message(paste0("Warning: Some of your sequences (",paste(testNFreq,collapse=", "),")have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
+        if(length(X)<1){
+            stop("Not enough sequences to continue ...",
+                 call. = FALSE)
+        }
+        X <- X[!testNFreq]
+
     }
     ## One-Hot conversion
     message("One-Hot Conversion...")

@@ -1,6 +1,7 @@
-#' Scanning of potential active G4 given a sequence or a list of sequences.
+#' Scanning of potential active G4 on a sequence or a list of sequences using a sliding window of size k.
 #'
 #' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
+#' @param k size of the sliding windows.
 #' @param seq.size numeric value representing the sequence size accepted by our model. Don't change it unless you want to use our function with a custom model.
 #' @param treshold  numeric value who define the treshold to use to consider a sequence asc ontaining an active G4.
 #' @param model a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.
@@ -9,7 +10,7 @@
 #' @export
 #'
 #' @examples
-DeepG4Scan <- function(X=NULL,seq.size = 201,treshold = 0.5,model = NULL){
+DeepG4Scan <- function(X=NULL,k=20,seq.size = 201,treshold = 0.5,model = NULL){
     #Check if X is provided
     if (is.null(X)) {
         stop("X must be provided (see ?DeepG4 for accepted formats).",
@@ -41,36 +42,37 @@ DeepG4Scan <- function(X=NULL,seq.size = 201,treshold = 0.5,model = NULL){
         stop("X must be a character, a list or a DNAString/DNAStringSet/DNAStringSetList",
              call. = FALSE)
     }
+    ## Check DNA composition
+    message("Check sequences composition...")
+    resFreq <- letterFrequency(X,"N",as.prob = T)
+    testNFreq <- as.vector(resFreq>0.1)
+    if(any(testNFreq)){
+        message(paste0("Warning: Some of your sequences (",paste(testNFreq,collapse=", "),")have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
+        if(length(X)<1){
+            stop("Not enough sequences to continue ...",
+                 call. = FALSE)
+        }
+        X <- X[!testNFreq]
+
+    }
     if(length(X)>1){
         results <- lapply(1:length(X),function(i){
             x <- X[i][[1]]
-            start <- seq(1,length(x),seq.size)
-            end <- start + (seq.size-1)
-            end <- ifelse(end>length(x),length(x),end)
-            Viewseq <- Biostrings::Views(x, start=start, end=end)
-            sequences <- Biostrings::DNAStringSet(Viewseq)
-
-            results <- cbind(index = i,as.data.frame(IRanges::ranges(Viewseq)),seq=as.character(Viewseq))
-
+            results <- cbind(seqnames= i,ExtractSubSequence(x=x,k=k,seq.size = seq.size))
             return(results)
         })
         results <- do.call(rbind,results)
         predictions <- DeepG4(X = as.character(results$seq),seq.size = seq.size,model = model)
-        results$predictions <- predictions[,1]
-        results <- results[results$predictions>treshold,]
+        results$score <- predictions[,1]
+        results <- results[results$score>treshold,]
     }else{
         if(class(X)[[1]] =="DNAStringSet"){
             X<- X[[1]]
         }
-        start <- seq(1,length(X),seq.size)
-        end <- start + (seq.size-1)
-        end <- ifelse(end>length(X),length(X),end)
-        Viewseq <- Biostrings::Views(X, start=start, end=end)
-        sequences <- Biostrings::DNAStringSet(Viewseq)
-        predictions <- DeepG4(X = sequences,seq.size = seq.size,model = model)
-
-        results <- cbind(as.data.frame(IRanges::ranges(Viewseq)),seq=as.character(Viewseq),predictions = predictions[,1])
-        results <- results[results$predictions>treshold,]
+        results <- cbind(seqnames= 1,ExtractSubSequence(x=X,k=k,seq.size = seq.size))
+        predictions <- DeepG4(X = as.character(results$seq),seq.size = seq.size,model = model)
+        results$score <- predictions[,1]
+        results <- results[results$score>treshold,]
     }
     return(results)
 }
