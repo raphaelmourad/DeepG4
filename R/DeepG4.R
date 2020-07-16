@@ -50,7 +50,14 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
         if(class(X) == "character"){
             X <- Biostrings::DNAStringSet(X)
         }else if(class(X) == "list"){
-            X <- unlist(Biostrings::DNAStringSetList(X))
+            if(class(X[[1]])[[1]] == "DNAString"){
+                X <- as(X,"DNAStringSet")
+            }else if(class(X[[1]])[[1]] == "character"){
+                X <- unlist(X)
+            }else{
+                stop("X must be a list of DNAString/character class",
+                     call. = FALSE)
+            }
         }else{
             stop("X must be a character, a list or a DNAStringSet/DNAStringSetList class",
                  call. = FALSE)
@@ -63,17 +70,17 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
     }
     ## Check sequences sizes
     message("Check sequences sizes...")
-    seqsizes <- unique(Biostrings::nchar(X))
+    seqsizes <- Biostrings::nchar(X)
     if(max(seqsizes) > seq.size){
         message(paste0("Warning: Some of your sequences are >",seq.size,", and will be croped."))
         X[(Biostrings::nchar(X)>seq.size & !Biostrings::nchar(X)<seq.size)] <- Biostrings::subseq(X[(Biostrings::nchar(X)>seq.size & !Biostrings::nchar(X)<seq.size)],start = 1,end = seq.size)
     }
     ## Check DNA composition
     message("Check sequences composition...")
-    resFreq <- letterFrequency(X,"N",as.prob = T)
+    resFreq <- Biostrings::letterFrequency(X,"N",as.prob = T)
     testNFreq <- as.vector(resFreq>0.1)
     if(any(testNFreq)){
-        message(paste0("Warning: Some of your sequences (",paste(testNFreq,collapse=", "),")have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
+        message(paste0("Warning: Some of your sequences have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
         if(length(X)<1){
             stop("Not enough sequences to continue ...",
                  call. = FALSE)
