@@ -13,7 +13,8 @@ Imports:
     Biostrings
 Suggests: 
     ggplot2,
-    yardstick
+    yardstick,
+    testthat
 Depends: 
     R (>= 3.6.3)
 RoxygenNote: 7.1.1
