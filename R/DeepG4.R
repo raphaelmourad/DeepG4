@@ -23,6 +23,7 @@
 #' predictions <- DeepG4(sequences)
 #' head(predictions)
 DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
+    seq.size <- 201
     tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1)
     #Check if X is provided
     if (is.null(X)) {
@@ -60,7 +61,7 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
     }else if(class(X)[[1]] =="DNAStringSetList"){
         X <- unlist(Biostrings::DNAStringSetList(X))
     }else if(class(X)[[1]] =="DNAString"){
-        X <- DNAStringSet(X)
+        X <- Biostrings::DNAStringSet(X)
     }
     ## Check sequences sizes
     message("Check sequences sizes...")
@@ -134,13 +135,13 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
             prediction_table$estimate <- factor(prediction_table$estimate,levels = c(0,1))
         }
         #Plot AUC
-        plot_ROC <- ggplot2::autoplot(yardstick::roc_curve(prediction_table,truth,pred_prob))
+        plot_ROC <- ggplot2::autoplot(yardstick::roc_curve(prediction_table,`truth`,`pred_prob`))
         #Get metrics
-        table_metrics <- yardstick::metrics(prediction_table,truth,estimate,pred_prob)
+        table_metrics <- yardstick::metrics(prediction_table,`truth`,`estimate`,`pred_prob`)
         #Plot confusion matrix
-        confusion_matrix <- as.data.frame(yardstick::conf_mat(prediction_table,truth, estimate)[[1]])
+        confusion_matrix <- as.data.frame(yardstick::conf_mat(prediction_table,`truth`, `estimate`)[[1]])
 
-        confusion_matrix <- ggplot2::ggplot(confusion_matrix,ggplot2::aes(Prediction, Truth, fill = Freq)) +
+        confusion_matrix <- ggplot2::ggplot(confusion_matrix,ggplot2::aes(Prediction, `Truth`, fill = `Freq`)) +
             ggplot2::geom_tile(show.legend = FALSE) +
             ggplot2::scale_fill_viridis_c() +
             ggplot2::geom_text(ggplot2::aes(label = Freq), color = "white", alpha = 1, size = 8) +

@@ -59,7 +59,7 @@ DeepG4Scan <- function(X=NULL,k=20,treshold = 0.5){
         }
         results <- cbind(seqnames= 1,ExtractSubSequence(x=X,k=k,seq.size = seq.size))
     }
-    X <- DNAStringSet(as.vector(results$seq))
+    X <- Biostrings::DNAStringSet(as.vector(results$seq))
     message("Check sequences composition...")
     resFreq <- Biostrings::letterFrequency(X,"N",as.prob = T)
     testNFreq <- as.vector(resFreq>0.1)

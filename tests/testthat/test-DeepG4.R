@@ -1,5 +1,4 @@
 require(Biostrings)
-library(rsample)
 test_sequences <- Biostrings::readDNAStringSet(system.file("extdata", "promoters_seq_example.fa", package = "DeepG4"))
 res.pos <- Biostrings::readDNAStringSet(system.file("extdata", "test_G4_data.fa", package = "DeepG4"))
 
@@ -108,6 +107,11 @@ test_that("One sequence with DNAStringSetList object", {
     expect_is(res, "matrix")
 })
 
+
+test_that("One sequence with DNAStringSetList object", {
+    res <- DeepG4(X = DNAStringSet(tolower(test_sequences[1])),lower.case = T)
+    expect_is(res, "matrix")
+})
 
 #Test with two sequences
 

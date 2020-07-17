@@ -10,7 +10,8 @@ Encoding: UTF-8
 LazyData: true
 Imports: 
     keras,
-    Biostrings
+    Biostrings,
+    methods
 Suggests: 
     ggplot2,
     yardstick,

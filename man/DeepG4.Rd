@@ -4,28 +4,14 @@
 \alias{DeepG4}
 \title{DeepG4 main function to predict a probability to form a G4, given a DNA sequence.}
 \usage{
-DeepG4(
-  X = NULL,
-  Y = NULL,
-  model = NULL,
-  tabv = c(N = 5, T = 4, G = 3, C = 2, A = 1),
-  lower.case = F,
-  seq.size = 201,
-  treshold = 0.5
-)
+DeepG4(X = NULL, Y = NULL, lower.case = F, treshold = 0.5)
 }
 \arguments{
-\item{X}{a character, a list or a DNAStringSet/DNAStringSetList of DNA sequences.}
+\item{X}{An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.}
 
 \item{Y}{a numeric vector of 1 and 0 values (default to NULL).}
 
-\item{model}{a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.}
-
-\item{tabv}{a named vector of numeric values representing the DNA to numerical conversion. Don't change it unless you want to use our function with a custom model.}
-
 \item{lower.case}{boolean. Set to \code{TRUE} if elements of X are in lower case (default to FALSE).}
-
-\item{seq.size}{numeric value representing the sequence size accepted by our model. Don't change it unless you want to use our function with a custom model.}
 
 \item{treshold}{numeric value who define the treshold to use to get confusion matrix (default to 0.5).}
 }
