@@ -23,6 +23,7 @@
 #' predictions <- DeepG4(sequences)
 #' head(predictions)
 DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
+    tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1)
     #Check if X is provided
     if (is.null(X)) {
         stop("X must be provided (see ?DeepG4 for accepted formats).",
@@ -60,9 +61,6 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
         X <- unlist(Biostrings::DNAStringSetList(X))
     }else if(class(X)[[1]] =="DNAString"){
         X <- DNAStringSet(X)
-    }else if(!class(X)[[1]] =="DNAStringSet"){
-        stop("X must be a character, a list or a DNAStringSet/DNAStringSetList",
-             call. = FALSE)
     }
     ## Check sequences sizes
     message("Check sequences sizes...")
@@ -77,10 +75,6 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
     testNFreq <- as.vector(resFreq>0.1)
     if(any(testNFreq)){
         message(paste0("Warning: Some of your sequences have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
-        if(length(X)<1){
-            stop("Not enough sequences to continue ...",
-                 call. = FALSE)
-        }
         X <- X[!testNFreq]
         if(length(X)<1){
             stop("Not enough sequences to continue ...",
@@ -90,7 +84,7 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
     ## One-Hot conversion
     message("One-Hot Conversion...")
     if(length(seqsizes) == 1) {
-        X <- DNAToNumerical(X,tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1),lower.case=lower.case,seq.size = seq.size)
+        X <- DNAToNumerical(X,tabv = tabv,lower.case=lower.case,seq.size = seq.size)
     }else{
         ## Have to apply One-Hot independently because seq sizes are differents
         X_by_size <- lapply(unique(Biostrings::nchar(X)),function(onesize){
@@ -107,11 +101,15 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
         return(res)
     }else{
         if(class(Y) != "numeric"){
-            stop("Y must be a numeric vector of 1 and 0 values",
+            stop("Y must be a numeric vector of 1 and 0 values.",
                  call. = FALSE)
         }
         if(FALSE %in% (unique(Y) %in% c(0,1))){
-            stop("Y must be a numeric vector of 1 and 0 values",
+            stop("Y must be a numeric vector of 1 and 0 values.",
+                 call. = FALSE)
+        }
+        if(length(Y)!= nrow(res)){
+            stop("Y must be a vector of same size as X.",
                  call. = FALSE)
         }
         # Compute accuracy and AUC
@@ -129,12 +127,16 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
         )
         prediction_table$estimate <- as.factor(ifelse(prediction_table$pred_prob<treshold,0,1))
         if(length(levels(prediction_table$truth))==1){
-            prediction_table$truth <- factor(prediction_table$truth,levels = c(1,0))
+            message("DeepG4: metrics can't be evaluated with no control cases (length(levels(Y))==1), return predictions")
+            return(res)
+        }
+        if(length(levels(prediction_table$estimate))==1){
+            prediction_table$estimate <- factor(prediction_table$estimate,levels = c(0,1))
         }
         #Plot AUC
         plot_ROC <- ggplot2::autoplot(yardstick::roc_curve(prediction_table,truth,pred_prob))
         #Get metrics
-        table_metrics <- yardstick::metrics(prediction_table,truth,estimate)
+        table_metrics <- yardstick::metrics(prediction_table,truth,estimate,pred_prob)
         #Plot confusion matrix
         confusion_matrix <- as.data.frame(yardstick::conf_mat(prediction_table,truth, estimate)[[1]])
 

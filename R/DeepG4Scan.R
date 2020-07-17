@@ -2,15 +2,14 @@
 #'
 #' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
 #' @param k size of the sliding windows.
-#' @param seq.size numeric value representing the sequence size accepted by our model. Don't change it unless you want to use our function with a custom model.
 #' @param treshold  numeric value who define the treshold to use to consider a sequence asc ontaining an active G4.
-#' @param model a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.
 #'
 #' @return a data.frame with the position of potential active G4 across input sequences.
 #' @export
 #'
 #' @examples
-DeepG4Scan <- function(X=NULL,k=20,seq.size = 201,treshold = 0.5,model = NULL){
+DeepG4Scan <- function(X=NULL,k=20,treshold = 0.5){
+    seq.size = 201
     #Check if X is provided
     if (is.null(X)) {
         stop("X must be provided (see ?DeepG4 for accepted formats).",
@@ -74,7 +73,7 @@ DeepG4Scan <- function(X=NULL,k=20,seq.size = 201,treshold = 0.5,model = NULL){
                  call. = FALSE)
         }
     }
-    predictions <- DeepG4(X = X,seq.size = seq.size,model = model)
+    predictions <- DeepG4(X = X)
     results$score <- predictions[,1]
     results <- results[results$score>treshold,]
     if(nrow(results)== 0){
