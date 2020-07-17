@@ -7,6 +7,8 @@
 
 <!-- badges: start -->
 
+[![Codecov test
+coverage](https://codecov.io/gh/morphos30/DeepG4/branch/master/graph/badge.svg)](https://codecov.io/gh/morphos30/DeepG4?branch=master)
 <!-- badges: end -->
 
 **DeepG4** is a deep learning model build in keras+tensorflow who aims
@@ -85,51 +87,4 @@ model <- load_model_hdf5(model)
 sequences <- DNAToNumerical(sequences)
 
 predictions <- predict(model,sequences)
-```
-
-## Using DeepG4 with a new active G4 dataset
-
-If you want to use our model architecture, but retrain with your own
-dataset, you can do it by running our function `DeepG4` with `retrain =
-TRUE`
-
-``` r
-
-library(Biostrings)
-library(DeepG4)
-library(rsample)
-
-# Read positive and segative set of sequences 
-sequences.pos <- readDNAStringSet("Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b.Fa")
-sequences.ctrl <- readDNAStringSet("Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM.Fa")
-sequences <- c(sequences.pos,sequences.ctrl)
-# Generate classes
-Y <- c(rep(1,length(sequences.pos)),rep(0,length(sequences.ctrl)))
-```
-
-It’s a good idea to split your dataset in train/test to evaluate the
-model performance on the testing dataset.
-
-``` r
-#  Sample dataset and get test and train dataset
-smp_size <- floor(0.70 * length(sequences))
-train_ind <- sample(seq_len(length(sequences)), size = smp_size)
-x.train <- sequences[train_ind]
-x.test <- sequences[-train_ind]
-y.train <- Y[train_ind]
-y.test <- Y[-train_ind]
-```
-
-Then train your model on your training dataset
-:
-
-``` r
-training <- DeepG4(x.train,y.train,retrain=TRUE,retrain.path = "DeepG4_retrained.hdf5")
-```
-
-You can now evaluate it with your testing dataset :
-
-``` r
-predictions <- DeepG4(x.test,y.test,model = "DeepG4_retrained.hdf5")
-predictions
 ```

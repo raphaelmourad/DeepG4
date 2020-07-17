@@ -2,13 +2,8 @@
 #'
 #' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
 #' @param Y a numeric vector of 1 and 0 values (default to NULL).
-#' @param model a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.
-#' @param tabv a named vector of numeric values representing the DNA to numerical conversion. Don't change it unless you want to use our function with a custom model.
 #' @param lower.case boolean. Set to \code{TRUE} if elements of X are in lower case (default to FALSE).
-#' @param seq.size numeric value representing the sequence size accepted by our model. Don't change it unless you want to use our function with a custom model.
 #' @param treshold numeric value who define the treshold to use to get confusion matrix (default to 0.5).
-#' @param retrain boolean. Set to \code{TRUE} if you want to retrain with your own dataset. Need Y to be provided (default to FALSE).
-#' @param retrain.path file where retrained model will be saved.
 #' @details
 #'  This function is a wrapper to help people to get a prediction given any DNA sequence(s) of type ACGTN with our DeepG4 model.
 #'  You don't have to use it to get a DeepG4 prediction, if you're familar with keras and tensorflow, you can access our model in hdf5 package using \code{system.file("extdata", "model.hdf5", package = "DeepG4")}.
@@ -27,8 +22,7 @@
 #'
 #' predictions <- DeepG4(sequences)
 #' head(predictions)
-DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1),lower.case=F,seq.size = 201,treshold = 0.5,retrain=FALSE,retrain.path=""){
-    model.regular.size.accepted <- 201
+DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
     #Check if X is provided
     if (is.null(X)) {
         stop("X must be provided (see ?DeepG4 for accepted formats).",
@@ -46,14 +40,14 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
     # Check sequences and convert into one-hot
     ## Check model class and convert into DNAStringSet object if needed
 
-    if(!class(X)[[1]] %in%c("DNAStringSet","DNAStringSetList")){
+    if(!class(X)[[1]] %in%c("DNAString","DNAStringSet","DNAStringSetList")){
         if(class(X) == "character"){
             X <- Biostrings::DNAStringSet(X)
         }else if(class(X) == "list"){
             if(class(X[[1]])[[1]] == "DNAString"){
                 X <- as(X,"DNAStringSet")
             }else if(class(X[[1]])[[1]] == "character"){
-                X <- unlist(X)
+                X <- Biostrings::DNAStringSet(unlist(X))
             }else{
                 stop("X must be a list of DNAString/character class",
                      call. = FALSE)
@@ -64,6 +58,8 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
         }
     }else if(class(X)[[1]] =="DNAStringSetList"){
         X <- unlist(Biostrings::DNAStringSetList(X))
+    }else if(class(X)[[1]] =="DNAString"){
+        X <- DNAStringSet(X)
     }else if(!class(X)[[1]] =="DNAStringSet"){
         stop("X must be a character, a list or a DNAStringSet/DNAStringSetList",
              call. = FALSE)
@@ -86,12 +82,15 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
                  call. = FALSE)
         }
         X <- X[!testNFreq]
-
+        if(length(X)<1){
+            stop("Not enough sequences to continue ...",
+                 call. = FALSE)
+        }
     }
     ## One-Hot conversion
     message("One-Hot Conversion...")
     if(length(seqsizes) == 1) {
-        X <- DNAToNumerical(X,tabv = tabv,lower.case=lower.case,seq.size = seq.size)
+        X <- DNAToNumerical(X,tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1),lower.case=lower.case,seq.size = seq.size)
     }else{
         ## Have to apply One-Hot independently because seq sizes are differents
         X_by_size <- lapply(unique(Biostrings::nchar(X)),function(onesize){
@@ -99,75 +98,10 @@ DeepG4 <- function(X = NULL,Y=NULL,model = NULL,tabv = c("N"=5,"T"=4,"G"=3,"C"=2
         })
         X <- array(unlist(X_by_size), dim = c(length(X),seq.size,length(tabv)))
     }
-    if(retrain){
-        # IF RETRAIN = TRUE
-        message("retrain == TRUE")
-        message("Model will be retrain using user input...")
-        # Check Y
-        if(is.null(Y)){
-            stop("Y must be set if you want retrain our model.",
-                 call. = FALSE)
-        }
-        if(class(Y) != "numeric"){
-            stop("Y must be a numeric vector of 1 and 0 values",
-                 call. = FALSE)
-        }
-        if(FALSE %in% (unique(Y) %in% c(0,1))){
-            stop("Y must be a numeric vector of 1 and 0 values",
-                 call. = FALSE)
-        }
-        # Build the model
-        # Try to load our saved model or custom model if !is.null(model)
-        message("Loading model...")
-        if(is.null(model)){
-            model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
-        }else{
-            if(class(model) != "character"){
-                stop("model must be a path to a keras model in hdf5 format",
-                     call. = FALSE)
-            }
-        }
-        #Load model with keras (tensorflow must be installed as well)
-        model <- keras::load_model_hdf5(model)
-        model <- keras::from_config(get_config(model))
-        keras::compile(model,
-            optimizer = 'rmsprop',
-            loss = 'binary_crossentropy',
-            metrics = list('accuracy')
-        )
-        # Retrain the model
-        history <- keras::fit(model,
-                       X,
-                       Y,
-                       epochs = 20,
-                       batch_size = 128,
-                       validation_split = 0.2,
-                       verbose= 1)
-        res <- stats::predict(model,X)
-        if(retrain.path == ""){
-            retrain.path <- paste0("DeepG4_retrained_",Sys.Date(),".hdf5")
-        }
-        keras::save_model_hdf5(model,retrain.path)
-    }else{
-        #IF RETRAIN = FALSE
-        # Try to load our saved model or custom model if !is.null(model)
-        message("Loading model...")
-        if(is.null(model)){
-            model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
-            if(seq.size != model.regular.size.accepted){
-                message("Please don't manually set seq.size unless you want to use a custom model")
-                seq.size <- model.regular.size.accepted
-            }
-        }else{
-            if(class(model) != "character"){
-                stop("model must be a path to a keras model in hdf5 format",
-                     call. = FALSE)
-            }
-        }
-        #Load model with keras (tensorflow must be installed as well)
-        model <- keras::load_model_hdf5(model)
-        res <- stats::predict(model,X)
-    }
+    model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
+    #Load model with keras (tensorflow must be installed as well)
+    model <- keras::load_model_hdf5(model)
+    res <- stats::predict(model,X)
     # If Y is provided, instead of returning prediction, return accuracy / AUC
     if(is.null(Y)){
         return(res)
