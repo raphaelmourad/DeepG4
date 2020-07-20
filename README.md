@@ -48,7 +48,7 @@ and chromatin.
 DeepG4 has been built with `Keras 2.3.1` and `tensorflow 2.1.0` but
 should work with any version of theses tools.
 
-A very convenient way to install it is within `R`, using `keras` R
+A very convenient way to install it is using `R`, using `keras` R
 package : <https://keras.rstudio.com/>.
 
 ``` r
@@ -58,7 +58,8 @@ install_keras()
 ```
 
 This will provide you with default CPU installations of Keras and
-TensorFlow.
+TensorFlow python packages (within a virtualenv) that can be used with
+or without R.
 
 ## Installation
 
@@ -70,7 +71,9 @@ You can install the development version from
 devtools::install_github("morphos30/DeepG4")
 ```
 
-## Usage with DeepG4 R package
+## With sequence(s) of size `<= 201bp`
+
+### Usage with DeepG4 R package
 
 ``` r
 library(Biostrings)
@@ -83,7 +86,7 @@ predictions <- DeepG4(sequences)
 head(predictions)
 ```
 
-## Using our model directly with keras in R
+### Using our model directly with keras in R
 
 Using our model with keras is very simple, the code is very similar, but
 you have to convert youre sequence in one-hot first. To help you, our
@@ -105,3 +108,32 @@ sequences <- DNAToNumerical(sequences)
 
 predictions <- predict(model,sequences)
 ```
+
+## Detect multiple G4 using `DeepG4` in larger sequences
+
+``` r
+library(Biostrings)
+library(DeepG4)
+sequences <- readDNAStringSet(system.file("extdata", "promoters_seq_example.fa", package = "DeepG4"))
+res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
+```
+
+This command will scan each input sequences using a sliding windows of
+size `k=20` and output the corresponding DeepG4 probability (\>=
+treshold) for each position (+/- 100bp) to form an active G4.
+
+``` r
+library(dplyr)
+res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  head
+```
+
+    # A tibble: 6 x 5
+    # Groups:   seqnames [3]
+      seqnames start   end width score
+         <int> <int> <int> <int> <dbl>
+    1        1  1241  1441   201 0.670
+    2        1  1261  1461   201 0.659
+    3        2  1481  1681   201 0.648
+    4        2  1521  1721   201 0.517
+    5        3  2161  2361   201 0.723
+    6        3  2181  2381   201 0.998
