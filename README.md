@@ -43,6 +43,23 @@ impact of known disease-associated variants on DNA secondary structure
 and provides a mechanistic interpretation of SNP impact on transcription
 and chromatin.
 
+## Requirements
+
+DeepG4 has been built with `Keras 2.3.1` and `tensorflow 2.1.0` but
+should work with any version of theses tools.
+
+A very convenient way to install it is within `R`, using `keras` R
+package : <https://keras.rstudio.com/>.
+
+``` r
+install.packages("keras")
+library(keras)
+install_keras()
+```
+
+This will provide you with default CPU installations of Keras and
+TensorFlow.
+
 ## Installation
 
 You can install the development version from
