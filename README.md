@@ -59,29 +59,6 @@ predictions <- DeepG4(sequences)
 head(predictions)
 ```
 
-### Using our model directly with keras in R
-
-Using our model with keras is very simple, the code is very similar, but
-you have to convert youre sequence in one-hot first. To help you, our
-function `DNAToNumerical` help you to do it.
-
-``` r
-
-library(Biostrings)
-library(DeepG4)
-library(keras)
-
-sequences <- system.file("extdata", "test_G4_data.fa", package = "DeepG4")
-sequences <- readDNAStringSet(sequences)
-
-model <- system.file("extdata", "model.hdf5", package = "DeepG4")
-model <- load_model_hdf5(model)
-
-sequences <- DNAToNumerical(sequences)
-
-predictions <- predict(model,sequences)
-```
-
 ## Detect multiple G4 using `DeepG4` in larger sequences
 
 ``` r
@@ -174,5 +151,29 @@ res <- ExtractMotifFromModel(sequences)
 p.pcm <- ggseqlogo::ggseqlogo(data = as.matrix(res[[1]]))
 print(p)
 ```
+
+### Using our model directly with keras in R
+
+Using our model with keras is very simple, the code is very similar, but
+you have to convert youre sequence in one-hot first. To help you, our
+function `DNAToNumerical` help you to do it.
+
+``` r
+
+library(Biostrings)
+library(DeepG4)
+library(keras)
+
+sequences <- system.file("extdata", "test_G4_data.fa", package = "DeepG4")
+sequences <- readDNAStringSet(sequences)
+
+model <- system.file("extdata", "model.hdf5", package = "DeepG4")
+model <- load_model_hdf5(model)
+
+sequences <- DNAToNumerical(sequences)
+
+predictions <- predict(model,sequences)
+```
+
 
 ![](best_pcm_from_kernel.svg)
