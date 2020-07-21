@@ -43,9 +43,10 @@ You can install the development version from
 devtools::install_github("morphos30/DeepG4")
 ```
 
-## With sequence(s) of size `<= 201bp`
+### Basic usage of DeepG4
 
-### Usage with DeepG4 R package
+If you have a small sequence (201bp or less), you can predict the 
+probability that the sequence forms an active G4.
 
 ``` r
 library(Biostrings)
