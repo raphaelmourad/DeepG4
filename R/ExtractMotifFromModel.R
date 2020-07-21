@@ -96,15 +96,41 @@ ExtractMotifFromModel <- function(X = NULL,Y=NULL,lower.case=F,top_kernel = 20){
         top_kernel <- nb_of_kernels
     }
     kernels_information <- order(kernels_information,decreasing = T)[1:top_kernel]
+    if(max(res[,,kernels_information[1]]) == 0){
+        stop(paste0("Error: No kernels activated, please try to select more sequences or larger (<=",seq.size,"bp)"),
+             call. = FALSE)
+    }
     PCM.list <- lapply(kernels_information,function(kernel){
         #Response map
         response_map <- res[,,kernel]
         #Make pwm from activated sequences
-        max_values <- response_map %>% apply(1,max)
-        indexes_no_0 <- max_values!=0
-        pos_in_seq <- response_map[indexes_no_0,] %>% apply(1,which.max)
-        DNA_seq <- X[indexes_no_0]
-        DNA_seq <- Biostrings::subseq(DNA_seq,start=pos_in_seq,end=pos_in_seq+(kernel_size-1))
+        if(is.null(dim(response_map))){
+            max_values <- max(response_map)
+            pos_in_seq <- which.max(response_map)
+            end_in_seq <- ifelse(pos_in_seq+(kernel_size-1)<Biostrings::nchar(X),pos_in_seq+(kernel_size-1),Biostrings::nchar(X))
+            DNA_seq <- Biostrings::subseq(X,start=pos_in_seq,end=end_in_seq)
+        }else{
+            max_values <- apply(response_map,1,max)
+            indexes_no_0 <- max_values!=0
+            DNA_seq <- X[indexes_no_0]
+            if(length(DNA_seq)!=1){
+                pos_in_seq <- apply(response_map[indexes_no_0,],1,which.max)
+                end_in_seq <- pos_in_seq+(kernel_size-1)
+                end_in_seq[end_in_seq>Biostrings::nchar(DNA_seq)] <- Biostrings::nchar(DNA_seq)
+
+
+            }else{
+                pos_in_seq <- which.max(response_map[indexes_no_0,])
+                end_in_seq <- ifelse(pos_in_seq+(kernel_size-1)<Biostrings::nchar(DNA_seq),pos_in_seq+(kernel_size-1),Biostrings::nchar(DNA_seq))
+            }
+            DNA_seq <- Biostrings::subseq(DNA_seq,start=pos_in_seq,end=end_in_seq)
+
+        }
+
+
+
+
+
 
         t(Reduce("+",
                  lapply(DNA_seq,function(x){Biostrings::letterFrequencyInSlidingView(x,letters = c("A","C","G","T"),

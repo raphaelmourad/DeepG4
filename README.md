@@ -138,7 +138,59 @@ res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  he
     5        3  2161  2361   201 0.723
     6        3  2181  2381   201 0.998
 
-## Extract features on our model
+## SNP effect on g-quadruplex using DeepG4
+
+Using our model, you can predict the potential effect of a SNPs on
+active G4 formation :
+
+``` r
+GetSeqFromSNPs <- function(my_granges,wsize = 201){
+    SNP_pos <- (wsize - 1)/2 + 1 
+    ## Compute Fasta
+    SNps.seq.ref <- my_granges %>% anchor_center() %>% mutate(width = wsize) %>% getSeq(BSgenome.Hsapiens.UCSC.hg19.masked,.)
+    ## Replace ref by alt
+    sampleMat <- matrix(FALSE,nrow = length(SNps.seq.ref),ncol = nchar(SNps.seq.ref[1]))
+    sampleMat[,SNP_pos] <- TRUE
+    SNps.seq.alt <- replaceLetterAt(SNps.seq.ref, sampleMat, my_granges$alt)
+    return(c(SNps.seq.ref,SNps.seq.alt))
+}
+require(GenomicRanges)
+require(Biostrings)
+require(dplyr)
+require(plyranges)
+require(BSgenome.Hsapiens.UCSC.hg19.masked)
+SNPs <- GRanges(SNPs <- c("chr16:87350773","chr19:50093572"))
+SNPs$name <- c("rs3748393","rs7249925")
+SNPs$ref <- c("C","A")
+SNPs$alt <- c("A","G")
+
+SNPs_seq <- SNPs %>% GetSeqFromSNPs
+
+DeepG4.score <- DeepG4(SNPs_seq)
+SNPs$DeepG4_ref <- DeepG4.score[1:length(SNPs),]
+SNPs$DeepG4_alt <- DeepG4.score[(length(SNPs)+1):nrow(DeepG4.score),]
+SNPs <- SNPs %>% mutate(DeltaScore = DeepG4_alt-DeepG4_ref)
+SNPs
+```
+
+    GRanges object with 2 ranges and 5 metadata columns:
+          seqnames    ranges strand |         ref         alt        DeepG4_ref
+             <Rle> <IRanges>  <Rle> | <character> <character>         <numeric>
+      [1]    chr16  87350773      * |           C           A 0.840066134929657
+      [2]    chr19  50093572      * |           A           G 0.126904487609863
+                 DeepG4_alt         DeltaScore
+                  <numeric>          <numeric>
+      [1] 0.386543124914169 -0.453523010015488
+      [2] 0.642100036144257  0.515195548534393
+      -------
+      seqinfo: 2 sequences from an unspecified genome; no seqlengths
+
+## Extract features from DeepG4 model
+
+Using DNA one-hot encoding, convolution weights (first layer of DeepG4)
+can be interpreted as weighted motif. Using this function, the user can
+retrieve the corresponding motif in the input sequences, and that way
+detect which motifs are usefull for the prediction.
 
 ``` r
 library(Biostrings)
