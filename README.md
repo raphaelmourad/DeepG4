@@ -59,7 +59,11 @@ predictions <- DeepG4(sequences)
 head(predictions)
 ```
 
-## Detect multiple G4 using `DeepG4` in larger sequences
+## Advanced usage of DeepG4
+
+
+If you have a large sequence (>201bp up to several Mbp), you can scan the sequence 
+and predict the positions of active G4s within the sequence.
 
 ``` r
 library(Biostrings)
@@ -68,9 +72,9 @@ sequences <- readDNAStringSet(system.file("extdata", "promoters_seq_example.fa",
 res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
 ```
 
-This command will scan each input sequences using a sliding windows of
-size `k=20` and output the corresponding DeepG4 probability (\>=
-treshold) for each position (+/- 100bp) to form an active G4.
+DeepG4Scan function scans each input sequence with a step of 
+`k=20` and outputs for each input sequence the G4 positions (+/- 100bp)
+and the corresponding DeepG4 probabilities (\>= treshold).
 
 ``` r
 library(dplyr)
