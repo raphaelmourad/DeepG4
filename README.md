@@ -11,19 +11,17 @@
 coverage](https://codecov.io/gh/morphos30/DeepG4/branch/master/graph/badge.svg)](https://codecov.io/gh/morphos30/DeepG4?branch=master)
 <!-- badges: end -->
 
-**DeepG4** is a deep learning model build in keras+tensorflow developed
-to predict the probability of DNA sequences to form active G-Guadruplexes
-secondary structures (found both in vitro and in vivo). **DeepG4** is wrapped in a R package, but can work
-with any langage that has implemented keras and tensorflow (see below).
+**DeepG4** is a deep learning model developed
+to predict the probability of DNA sequences to form active G-Guadruplexes (found both in vitro and in vivo). 
+**DeepG4** is built in keras+tensorflow and is wrapped in an R package. 
 
 
 ## Requirements
 
-DeepG4 has been built with `Keras 2.3.1` and `tensorflow 2.1.0` but
-should work with any version of theses tools.
+DeepG4 was built with `Keras 2.3.1` and `tensorflow 2.1.0`, but it
+should work with any version of theses libraries.
 
-A very convenient way to install it is using `R`, using `keras` R
-package : <https://keras.rstudio.com/>.
+A very convenient way to install keras and tensorflow is using `R`. The command line to install is from : <https://keras.rstudio.com/>.
 
 ``` r
 install.packages("keras")
