@@ -139,7 +139,7 @@ SNPs
       -------
       seqinfo: 2 sequences from an unspecified genome; no seqlengths
 
-## Extract features (DNA motifs) from DeepG4 model
+## Scan DeepG4 DNA motifs from the input sequences
 
 Using one-hot encoding of DNA, convolution kernels (first layer of DeepG4)
 can be interpreted as weighted motifs, similar to position weight matrices (PWMs) used for DNA motifs. 
