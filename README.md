@@ -141,10 +141,9 @@ SNPs
 
 ## Extract features (DNA motifs) from DeepG4 model
 
-Using DNA one-hot encoding, convolution weights (first layer of DeepG4)
-can be interpreted as weighted motif. Using this function, the user can
-retrieve the corresponding motif in the input sequences, and that way
-detect which motifs are usefull for the prediction.
+Using one-hot encoding of DNA, convolution kernels (first layer of DeepG4)
+can be interpreted as weighted motifs, similar to position weight matrices (PWMs) used for DNA motifs. 
+The function ExtractMotifFromModel detects DeepG4 DNA motifs found in the input sequences.
 
 ``` r
 library(Biostrings)
