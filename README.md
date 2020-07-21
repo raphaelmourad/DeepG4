@@ -94,7 +94,7 @@ res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  he
 
 ## SNP effect on g-quadruplex using DeepG4
 
-Using our model, you can predict the potential effect of a SNPs on
+Using our model, you can predict the potential effect of a SNP on
 active G4 formation :
 
 ``` r
@@ -139,7 +139,7 @@ SNPs
       -------
       seqinfo: 2 sequences from an unspecified genome; no seqlengths
 
-## Extract features from DeepG4 model
+## Extract features (DNA motifs) from DeepG4 model
 
 Using DNA one-hot encoding, convolution weights (first layer of DeepG4)
 can be interpreted as weighted motif. Using this function, the user can
