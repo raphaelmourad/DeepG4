@@ -70,10 +70,24 @@ x.train <- sequences[train_ind]
 x.test <- sequences[-train_ind]
 y.train <- Y[train_ind]
 y.test <- Y[-train_ind]
-
+#Test with training
+test_that("Test with training", {
+    training <- DeepG4(x.train,y.train,retrain=T)
+    expect_is(training[[1]], "matrix")
+    expect_is(training[[2]], "ggplot")
+    expect_is(training[[3]], "ggplot")
+    expect_is(training[[4]], "data.frame")
+})
+#Test with training
+test_that("Test with training error Y", {
+    expect_error(DeepG4(X=x.train,Y=c("cc1","cc2"),retrain=T))
+    expect_error(DeepG4(X=x.train,Y=c(3,4),retrain=T))
+    expect_error(DeepG4(X=x.train,retrain=T))
+    expect_error(DeepG4(x.train,y.train,retrain.path="/home/rochevin/Documents/PROJET_THESE/DeepG4/model_retrained.h5",retrain=T,model=1))
+})
 #Test with evaluation
 test_that("Test with evaluation", {
-    training <- DeepG4(x.train,y.train)
+    training <- DeepG4(x.test,y.test,model = "/home/rochevin/Documents/PROJET_THESE/DeepG4/model_retrained.h5")
     expect_is(training[[1]], "matrix")
     expect_is(training[[2]], "ggplot")
     expect_is(training[[3]], "ggplot")
