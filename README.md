@@ -233,8 +233,8 @@ training[[4]]
     3 mn_log_loss binary         9.59 
     4 roc_auc     binary         0.994
 
-The best practice instead is to use the test data set to evaluate the
-model :
+Instead of using the training dataset to evaluate the model, the best
+practice is to use the test dataset :
 
 ``` r
 predictions <- DeepG4(x.test,y.test,model = "DeepG4_retrained.hdf5")
