@@ -21,17 +21,15 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/morphos30/DeepG4/branch/master/graph/badge.svg)](https://codecov.io/gh/morphos30/DeepG4?branch=master)
 <!-- badges: end -->
 
-__DeepG4__ is a deep learning model build in keras+tensorflow who aims to predict the probability of DNA sequences to form G-Guadruplexes secondary structures. __DeepG4__ is wrapped in a R package, but can work with any langage that has implemented keras and tensorflow (see below). 
-
-## Abstract
-
-DNA is a complex molecule carrying the instructions an organism needs to develop, live and reproduce. In 1953, Watson and Crick discovered that DNA is composed of two chains forming a double-helix. Later on, other structures of DNA were discovered and shown to play important roles in the cell, in particular G-quadruplex (G4). Following genome sequencing, several bioinformatic algorithms were developed to map G4s in vitro based on a canonical sequence motif, G-richness and G-skewness or alternatively sequence features including k-mers. Here, we propose instead a convolutional neural network (DeepG4) to map active G4s (forming both in vitro and in vivo). DeepG4 is very accurate to predict active G4s, while state-of-the-art algorithms fail. Moreover, DeepG4 identifies key DNA motifs that are predictive of G4 activity. We found that active G4 motifs do not follow a very flexible sequence pattern as current algorithms seek for. Instead, active G4s are determined by numerous specific motifs. Moreover, among those motifs, we identified known transcription factors which could play important roles in G4 activity by either directly contributing to G4 structure themselves or by participating in G4 formation in the vicinity. Lastly, variant analysis suggests that SNPs altering predicted G4 activity could affect transcription and chromatin, e.g. gene expression, H3K4me3 mark and DNA methylation. Thus, DeepG4 paves the way for future studies assessing the impact of known disease-associated variants on DNA secondary structure and provides a mechanistic interpretation of SNP impact on transcription and chromatin.
+**DeepG4** is a deep learning model developed to predict the probability of DNA sequences to form active G-Guadruplexes (found both in vitro and in vivo). 
+**DeepG4** is built in keras+tensorflow and is wrapped in an R package. 
 
 ## Requirements
 
-DeepG4 has been built with `Keras 2.3.1` and `tensorflow 2.1.0` but should work with any version of theses tools.
+DeepG4 was built with `Keras 2.3.1` and `tensorflow 2.1.0`, but it
+should work with any version of theses libraries.
 
-A very convenient way to install it is using `R`, using `keras` R package : [https://keras.rstudio.com/](https://keras.rstudio.com/).
+A very convenient way to install keras and tensorflow is using `R`. The command line to install is from : [https://keras.rstudio.com/](https://keras.rstudio.com/).
 
 ``` r
 install.packages("keras")
@@ -52,9 +50,10 @@ devtools::install_github("morphos30/DeepG4")
 ```
 
 
-## With sequence(s) of size `<= 201bp`
+## Basic usage of DeepG4
 
-### Usage with DeepG4 R package
+If you have a small sequence (201bp or less), you can predict the 
+probability that the sequence forms an active G4.
 
 ```r
 library(Biostrings)
@@ -67,28 +66,19 @@ predictions <- DeepG4(sequences)
 head(predictions)
 ```
 
-### Using our model directly with keras in R
-
-Using our model with keras is very simple, the code is very similar, but you have to convert youre sequence in one-hot first. To help you, our function `DNAToNumerical` help you to do it.
-
-```r
-
-library(Biostrings)
-library(DeepG4)
-library(keras)
-
-sequences <- system.file("extdata", "test_G4_data.fa", package = "DeepG4")
-sequences <- readDNAStringSet(sequences)
-
-model <- system.file("extdata", "model.hdf5", package = "DeepG4")
-model <- load_model_hdf5(model)
-
-sequences <- DNAToNumerical(sequences)
-
-predictions <- predict(model,sequences)
+```
+          [,1]
+[1,] 0.9998598
+[2,] 0.9993761
+[3,] 0.9539083
+[4,] 0.9974855
+[5,] 0.9908580
+[6,] 0.9999917
 ```
 
-## Detect multiple G4 using `DeepG4` in larger sequences
+## Advanced usage of DeepG4
+
+If you have a large sequence (>201bp up to several Mbp), you can scan the sequence  and predict the positions of active G4s within the sequence.
 
 ``` r
 library(Biostrings)
@@ -96,7 +86,7 @@ library(DeepG4)
 sequences <- readDNAStringSet(system.file("extdata", "promoters_seq_example.fa", package = "DeepG4"))
 res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
 ```
-This command will scan each input sequences using a sliding windows of size `k=20` and output the corresponding DeepG4 probability (>= treshold) for each position (+/- 100bp) to form an active G4.
+DeepG4Scan function scans each input sequence with a step of  `k=20` and outputs for each input sequence the G4 positions (+/- 100bp) and the corresponding DeepG4 probabilities (>= treshold).
 
 ``` r
 library(dplyr)
@@ -118,7 +108,8 @@ res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  he
 
 ## SNP effect on g-quadruplex using DeepG4
 
-Using our model, you can predict the potential effect of a SNPs on active G4 formation :
+
+Using our model, you can predict the potential effect of a SNP on active G4 formation :
 
 ```r
 GetSeqFromSNPs <- function(my_granges,wsize = 201){
@@ -136,7 +127,7 @@ require(Biostrings)
 require(dplyr)
 require(plyranges)
 require(BSgenome.Hsapiens.UCSC.hg19.masked)
-SNPs <- GRanges(SNPs <- c("chr16:87350773","chr19:50093572"))
+SNPs <- GRanges(c("chr16:87350773","chr19:50093572"))
 SNPs$name <- c("rs3748393","rs7249925")
 SNPs$ref <- c("C","A")
 SNPs$alt <- c("A","G")
@@ -165,18 +156,20 @@ GRanges object with 2 ranges and 5 metadata columns:
 ```
 
 
-## Extract features from DeepG4 model
+## Scan DeepG4 DNA motifs from the input sequences
 
-Using DNA one-hot encoding, convolution weights (first layer of DeepG4) can be interpreted as weighted motif. Using this function, the user can retrieve the corresponding motif in the input sequences, and that way detect which motifs are usefull for the prediction.
+Using one-hot encoding of DNA, convolution kernels (first layer of DeepG4)
+can be interpreted as weighted motifs, similar to position weight matrices (PWMs) used for DNA motifs. 
+The function ExtractMotifFromModel detects DeepG4 DNA motifs found in the input sequences.
 
-```r
+``` r
 library(Biostrings)
 library(DeepG4)
 library(ggseqlogo)
 sequences <- readDNAStringSet(system.file("extdata", "test_G4_data.fa", package = "DeepG4"))
 res <- ExtractMotifFromModel(sequences)
-p.pcm <- ggseqlogo::ggseqlogo(data = as.matrix(res[[1]]))
-print(p)
+p.pcm <- lapply(res,function(x){ggseqlogo(as.matrix(x)) + ggplot2::theme_classic(base_size=8)})
+print(cowplot::plot_grid(plotlist = p.pcm,ncol=4))
 ```
 
 ![](best_pcm_from_kernel.svg)

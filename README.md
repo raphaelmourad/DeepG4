@@ -11,17 +11,18 @@
 coverage](https://codecov.io/gh/morphos30/DeepG4/branch/master/graph/badge.svg)](https://codecov.io/gh/morphos30/DeepG4?branch=master)
 <!-- badges: end -->
 
-**DeepG4** is a deep learning model developed
-to predict the probability of DNA sequences to form active G-Guadruplexes (found both in vitro and in vivo). 
-**DeepG4** is built in keras+tensorflow and is wrapped in an R package. 
-
+**DeepG4** is a deep learning model developed to predict the probability
+of DNA sequences to form active G-Guadruplexes (found both in vitro and
+in vivo). **DeepG4** is built in keras+tensorflow and is wrapped in an R
+package.
 
 ## Requirements
 
 DeepG4 was built with `Keras 2.3.1` and `tensorflow 2.1.0`, but it
 should work with any version of theses libraries.
 
-A very convenient way to install keras and tensorflow is using `R`. The command line to install is from : <https://keras.rstudio.com/>.
+A very convenient way to install keras and tensorflow is using `R`. The
+command line to install is from : <https://keras.rstudio.com/>.
 
 ``` r
 install.packages("keras")
@@ -43,9 +44,9 @@ You can install the development version from
 devtools::install_github("morphos30/DeepG4")
 ```
 
-### Basic usage of DeepG4
+## Basic usage of DeepG4
 
-If you have a small sequence (201bp or less), you can predict the 
+If you have a small sequence (201bp or less), you can predict the
 probability that the sequence forms an active G4.
 
 ``` r
@@ -59,11 +60,21 @@ predictions <- DeepG4(sequences)
 head(predictions)
 ```
 
+``` 
+          [,1]
+[1,] 0.9998598
+[2,] 0.9993761
+[3,] 0.9539083
+[4,] 0.9974855
+[5,] 0.9908580
+[6,] 0.9999917
+```
+
 ## Advanced usage of DeepG4
 
-
-If you have a large sequence (>201bp up to several Mbp), you can scan the sequence 
-and predict the positions of active G4s within the sequence.
+If you have a large sequence (\>201bp up to several Mbp), you can scan
+the sequence and predict the positions of active G4s within the
+sequence.
 
 ``` r
 library(Biostrings)
@@ -72,9 +83,9 @@ sequences <- readDNAStringSet(system.file("extdata", "promoters_seq_example.fa",
 res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
 ```
 
-DeepG4Scan function scans each input sequence with a step of 
-`k=20` and outputs for each input sequence the G4 positions (+/- 100bp)
-and the corresponding DeepG4 probabilities (\>= treshold).
+DeepG4Scan function scans each input sequence with a step of `k=20` and
+outputs for each input sequence the G4 positions (+/- 100bp) and the
+corresponding DeepG4 probabilities (\>= treshold).
 
 ``` r
 library(dplyr)
@@ -94,8 +105,8 @@ res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  he
 
 ## SNP effect on g-quadruplex using DeepG4
 
-Using our model, you can predict the potential effect of a SNP on
-active G4 formation :
+Using our model, you can predict the potential effect of a SNP on active
+G4 formation :
 
 ``` r
 GetSeqFromSNPs <- function(my_granges,wsize = 201){
@@ -113,7 +124,7 @@ require(Biostrings)
 require(dplyr)
 require(plyranges)
 require(BSgenome.Hsapiens.UCSC.hg19.masked)
-SNPs <- GRanges(SNPs <- c("chr16:87350773","chr19:50093572"))
+SNPs <- GRanges(c("chr16:87350773","chr19:50093572"))
 SNPs$name <- c("rs3748393","rs7249925")
 SNPs$ref <- c("C","A")
 SNPs$alt <- c("A","G")
@@ -141,9 +152,11 @@ SNPs
 
 ## Scan DeepG4 DNA motifs from the input sequences
 
-Using one-hot encoding of DNA, convolution kernels (first layer of DeepG4)
-can be interpreted as weighted motifs, similar to position weight matrices (PWMs) used for DNA motifs. 
-The function ExtractMotifFromModel detects DeepG4 DNA motifs found in the input sequences.
+Using one-hot encoding of DNA, convolution kernels (first layer of
+DeepG4) can be interpreted as weighted motifs, similar to position
+weight matrices (PWMs) used for DNA motifs. The function
+ExtractMotifFromModel detects DeepG4 DNA motifs found in the input
+sequences.
 
 ``` r
 library(Biostrings)
@@ -151,9 +164,8 @@ library(DeepG4)
 library(ggseqlogo)
 sequences <- readDNAStringSet(system.file("extdata", "test_G4_data.fa", package = "DeepG4"))
 res <- ExtractMotifFromModel(sequences)
-p.pcm <- ggseqlogo::ggseqlogo(data = as.matrix(res[[1]]))
-print(p)
+p.pcm <- lapply(res,function(x){ggseqlogo(as.matrix(x)) + ggplot2::theme_classic(base_size=8)})
+print(cowplot::plot_grid(plotlist = p.pcm,ncol=4))
 ```
-
 
 ![](best_pcm_from_kernel.svg)
