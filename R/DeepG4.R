@@ -2,8 +2,9 @@
 #'
 #' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
 #' @param Y a numeric vector of 1 and 0 values (default to NULL).
-#' @param lower.case boolean. Set to \code{TRUE} if elements of X are in lower case (default to FALSE).
+#' @param lower.case a boolean. Set to \code{TRUE} if elements of X are in lower case (default to FALSE).
 #' @param treshold numeric value who define the treshold to use to get confusion matrix (default to 0.5).
+#' @param log_odds a boolean. If set to TRUE then return the logarithm of the odds instead of probability (Layer before the sigmoid activation). Use only to compute a deltaScore between two sequences. Default to TRUE
 #' @details
 #'  This function is a wrapper to help people to get a prediction given any DNA sequence(s) of type ACGTN with our DeepG4 model.
 #'  You don't have to use it to get a DeepG4 prediction, if you're familar with keras and tensorflow, you can access our model in hdf5 package using \code{system.file("extdata", "model.hdf5", package = "DeepG4")}.
@@ -22,7 +23,7 @@
 #'
 #' predictions <- DeepG4(sequences)
 #' head(predictions)
-DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
+DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5,log_odds=F){
     seq.size <- 201
     tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1)
     #Check if X is provided
@@ -96,6 +97,11 @@ DeepG4 <- function(X = NULL,Y=NULL,lower.case=F,treshold = 0.5){
     model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
     #Load model with keras (tensorflow must be installed as well)
     model <- keras::load_model_hdf5(model)
+    if(log_odds){
+        # If log_odds is set to TRUE, return instead a real number computed by the layer before the sigmoid activation (or the last layer without sigmoid)
+        model <- keras::keras_model(inputs = model$input,
+                             outputs = keras::get_layer(model, index = 7)$output)
+    }
     res <- stats::predict(model,X)
     # If Y is provided, instead of returning prediction, return accuracy / AUC
     if(is.null(Y)){

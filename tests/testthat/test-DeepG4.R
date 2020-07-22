@@ -171,3 +171,8 @@ test_that("estimate levels = 0", {
     res <- DeepG4(X = myseq,Y=c(0,1))
     expect_is(res, "list")
 })
+
+test_that("Return log of the odds instead of probability (set log_odds to TRUE)", {
+    res <- DeepG4(X = test_sequences[1:2],log_odds=T)
+    expect_is(res, "matrix")
+})

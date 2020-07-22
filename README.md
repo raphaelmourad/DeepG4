@@ -109,6 +109,7 @@ Using our model, you can predict the potential effect of a SNP on active
 G4 formation :
 
 ``` r
+# Function to obtain ref/alt DNA sequences from the SNP coordinates
 GetSeqFromSNPs <- function(my_granges,wsize = 201){
     SNP_pos <- (wsize - 1)/2 + 1 
     ## Compute Fasta
@@ -119,36 +120,35 @@ GetSeqFromSNPs <- function(my_granges,wsize = 201){
     SNps.seq.alt <- replaceLetterAt(SNps.seq.ref, sampleMat, my_granges$alt)
     return(c(SNps.seq.ref,SNps.seq.alt))
 }
+# Libraries
 require(GenomicRanges)
 require(Biostrings)
 require(dplyr)
 require(plyranges)
 require(BSgenome.Hsapiens.UCSC.hg19.masked)
+# Make a GRanges object from two known SNPs
+## Genomic positions
 SNPs <- GRanges(c("chr16:87350773","chr19:50093572"))
+## Name and ref/alt alleles
 SNPs$name <- c("rs3748393","rs7249925")
 SNPs$ref <- c("C","A")
 SNPs$alt <- c("A","G")
 
+## Apply our function to get the ref/alt sequence
 SNPs_seq <- SNPs %>% GetSeqFromSNPs
-
-DeepG4.score <- DeepG4(SNPs_seq)
+## And launch DeepG4 on theses sequences
+DeepG4.score <- DeepG4(SNPs_seq,log_odds=T)
 SNPs$DeepG4_ref <- DeepG4.score[1:length(SNPs),]
 SNPs$DeepG4_alt <- DeepG4.score[(length(SNPs)+1):nrow(DeepG4.score),]
 SNPs <- SNPs %>% mutate(DeltaScore = DeepG4_alt-DeepG4_ref)
-SNPs
+SNPs %>% as_tibble()
 ```
 
-    GRanges object with 2 ranges and 5 metadata columns:
-          seqnames    ranges strand |         ref         alt        DeepG4_ref
-             <Rle> <IRanges>  <Rle> | <character> <character>         <numeric>
-      [1]    chr16  87350773      * |           C           A 0.840066134929657
-      [2]    chr19  50093572      * |           A           G 0.126904487609863
-                 DeepG4_alt         DeltaScore
-                  <numeric>          <numeric>
-      [1] 0.386543124914169 -0.453523010015488
-      [2] 0.642100036144257  0.515195548534393
-      -------
-      seqinfo: 2 sequences from an unspecified genome; no seqlengths
+    # A tibble: 2 x 11
+      seqnames    start     end width strand name    ref   alt   DeepG4_ref DeepG4_alt DeltaScore
+      <fct>       <int>   <int> <int> <fct>  <chr>   <chr> <chr>      <dbl>      <dbl>      <dbl>
+    1 chr16    87350773  8.74e7     1 *      rs3748… C     A           1.66     -0.462      -2.12
+    2 chr19    50093572  5.01e7     1 *      rs7249… A     G          -1.93      0.584       2.51
 
 ## Scan DeepG4 DNA motifs from the input sequences
 
