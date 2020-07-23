@@ -18,5 +18,5 @@ Suggests:
     testthat,
     covr
 Depends: 
-    R (>= 3.6.3)
+    R (>= 3.6)
 RoxygenNote: 7.1.1
