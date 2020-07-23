@@ -164,9 +164,9 @@ library(DeepG4)
 library(ggseqlogo)
 library(cowplot)
 sequences <- readDNAStringSet(system.file("extdata", "test_G4_data.fa", package = "DeepG4"))
-res <- ExtractMotifFromModel(sequences)
-p.pcm <- lapply(res,function(x){ggseqlogo(as.matrix(x)) + ggplot2::theme_classic(base_size=8)})
-print(plot_grid(plotlist = p.pcm,ncol=4))
+res <- ExtractMotifFromModel(sequences,top_kernel=4)
+p.pcm <- lapply(res,function(x){ggseqlogo(as.matrix(x)) + ggplot2::theme_classic(base_size=14)})
+print(plot_grid(plotlist = p.pcm,ncol=2))
 ```
 
 ![](best_pcm_from_kernel.svg)
@@ -191,24 +191,8 @@ sequences <- c(sequences.pos,sequences.ctrl)
 Y <- c(rep(1,length(sequences.pos)),rep(0,length(sequences.ctrl)))
 ```
 
-It’s a good idea to split your dataset in train/test to evaluate the
-model performance on the testing dataset.
-
 ``` r
-#  Sample dataset and get test and train dataset
-smp_size <- floor(0.70 * length(sequences))
-train_ind <- sample(seq_len(length(sequences)), size = smp_size)
-x.train <- sequences[train_ind]
-x.test <- sequences[-train_ind]
-y.train <- Y[train_ind]
-y.test <- Y[-train_ind]
-```
-
-Then train your model on your training dataset
-:
-
-``` r
-training <- DeepG4(x.train,y.train,retrain=TRUE,retrain.path = "DeepG4_retrained.hdf5")
+training <- DeepG4(sequences,Y,retrain=TRUE,retrain.path = "DeepG4_retrained.hdf5")
 ```
 
 You can now take a look on the results :
@@ -228,30 +212,7 @@ training[[4]]
     # A tibble: 4 x 3
       .metric     .estimator .estimate
       <chr>       <chr>          <dbl>
-    1 accuracy    binary         0.978
-    2 kap         binary         0.956
-    3 mn_log_loss binary         9.59 
-    4 roc_auc     binary         0.994
-
-Instead of using the training dataset to evaluate the model, the best
-practice is to use the test dataset :
-
-``` r
-predictions <- DeepG4(x.test,y.test,model = "DeepG4_retrained.hdf5")
-p_res_test <- cowplot::plot_grid(plotlist = predictions[2:3])
-print(p_res_test)
-```
-
-![](p_res_test.svg)
-
-``` r
-predictions[[4]]
-```
-
-    # A tibble: 4 x 3
-      .metric     .estimator .estimate
-      <chr>       <chr>          <dbl>
-    1 accuracy    binary         0.890
-    2 kap         binary         0.780
-    3 mn_log_loss binary         8.63 
-    4 roc_auc     binary         0.954
+    1 accuracy    binary         0.976
+    2 kap         binary         0.952
+    3 mn_log_loss binary        11.5  
+    4 roc_auc     binary         0.997

@@ -129,12 +129,14 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
         #Load model with keras (tensorflow must be installed as well)
         model <- keras::load_model_hdf5(model)
         model <- keras::from_config(keras::get_config(model))
+        message("Compilation...")
         keras::compile(model,
                        optimizer = 'rmsprop',
                        loss = 'binary_crossentropy',
                        metrics = list('accuracy')
         )
         # Retrain the model
+        message("Training...")
         history <- keras::fit(model,
                               X,
                               Y,
@@ -142,6 +144,7 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
                               batch_size = 128,
                               validation_split = 0.2,
                               verbose= 0)
+        message("Done !...")
         res <- stats::predict(model,X)
         if(retrain.path == ""){
             retrain.path <- paste0("DeepG4_retrained_",Sys.Date(),".hdf5")
