@@ -59,8 +59,8 @@ test_that("Two sequence with N>=0.1", {
     expect_error(DeepG4(X = myseq))
 })
 
-sequences.pos <- readDNAStringSet("/home/rochevin/Documents/PROJET_THESE/scriptsDeepG4/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b.Fa")
-sequences.ctrl <- readDNAStringSet("/home/rochevin/Documents/PROJET_THESE/scriptsDeepG4/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM.Fa")
+sequences.pos <- readDNAStringSet("/home/rochevin/Documents/PROJET_THESE/scriptsDeepG4/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b.Fa")[1:1000]
+sequences.ctrl <- readDNAStringSet("/home/rochevin/Documents/PROJET_THESE/scriptsDeepG4/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM.Fa")[1:1000]
 sequences <- c(sequences.pos,sequences.ctrl)
 # Generate classes
 Y <- c(rep(1,length(sequences.pos)),rep(0,length(sequences.ctrl)))
@@ -71,8 +71,15 @@ x.test <- sequences[-train_ind]
 y.train <- Y[train_ind]
 y.test <- Y[-train_ind]
 #Test with training
-test_that("Test with training", {
+test_that("Test with training no path", {
     training <- DeepG4(x.train,y.train,retrain=T)
+    expect_is(training[[1]], "matrix")
+    expect_is(training[[2]], "ggplot")
+    expect_is(training[[3]], "ggplot")
+    expect_is(training[[4]], "data.frame")
+})
+test_that("Test with training with path", {
+    training <- DeepG4(x.train,y.train,retrain=T,retrain.path = "/home/rochevin/Documents/PROJET_THESE/DeepG4/model_retrained.h5")
     expect_is(training[[1]], "matrix")
     expect_is(training[[2]], "ggplot")
     expect_is(training[[3]], "ggplot")

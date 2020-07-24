@@ -4,16 +4,34 @@
 \alias{DeepG4}
 \title{DeepG4 main function to predict a probability to form a G4, given a DNA sequence.}
 \usage{
-DeepG4(X = NULL, Y = NULL, lower.case = F, treshold = 0.5, log_odds = F)
+DeepG4(
+  X = NULL,
+  Y = NULL,
+  model = NULL,
+  lower.case = F,
+  treshold = 0.5,
+  seq.size = 201,
+  retrain = FALSE,
+  retrain.path = "",
+  log_odds = F
+)
 }
 \arguments{
 \item{X}{An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.}
 
 \item{Y}{a numeric vector of 1 and 0 values (default to NULL).}
 
+\item{model}{a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.}
+
 \item{lower.case}{a boolean. Set to \code{TRUE} if elements of X are in lower case (default to FALSE).}
 
 \item{treshold}{numeric value who define the treshold to use to get confusion matrix (default to 0.5).}
+
+\item{seq.size}{numeric value representing the sequence size accepted by our model. Don't change it unless you want to use our function with a custom model.}
+
+\item{retrain}{boolean. Set to \code{TRUE} if you want to retrain with your own dataset. Need Y to be provided (default to FALSE).}
+
+\item{retrain.path}{file where retrained model will be saved.}
 
 \item{log_odds}{a boolean. If set to TRUE then return the logarithm of the odds instead of probability (Layer before the sigmoid activation). Use only to compute a deltaScore between two sequences. Default to TRUE}
 }

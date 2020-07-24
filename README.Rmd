@@ -15,7 +15,9 @@ knitr::opts_chunk$set(
 
 ![logo](logo.svg)
 
-# __DeepG4__: A deep learning approach to predict active G-quadruplexes
+(__DeepG4__: A deep learning approach to predict active G-quadruplexes)[https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699]
+
+_Vincent Rocher, Matthieu Genais, Elissar Nassereddine and Raphael Mourad_
 
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/morphos30/DeepG4/branch/master/graph/badge.svg)](https://codecov.io/gh/morphos30/DeepG4?branch=master)

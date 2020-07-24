@@ -1,10 +1,12 @@
 Package: DeepG4
 Type: Package
-Title: DeepG4 : A deep learning approach to predict active G-quadruplexes
+Title: A deep learning approach to predict active G-quadruplexes
 Version: 0.1.0
-Authors@R: c(person("Vincent","Rocher",role = "aut",email = "vincent.rocher@univ-tlse3.fr"),person("Matthieu","Genais",role = "aut"),person("Elissar","Nassereddine",role = "aut"),person("Matthias","Zytnicki",role = "aut"),person("Raphael","Mourad",role = c("aut","cre"),email = "raphael.mourad@ibcg.biotoul.fr"))
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R: c(person("Vincent","Rocher",role = "aut",email = "vincent.rocher@univ-tlse3.fr"),person("Matthieu","Genais",role = "aut"),person("Elissar","Nassereddine",role = "aut"),person("Raphael","Mourad",role = c("aut","cre"),email = "raphael.mourad@ibcg.biotoul.fr"))
+Description: DeepG4 is a deep learning model developed to predict the probability of DNA sequences to form active G-Guadruplexes (found both in vitro and in vivo). DeepG4 is built in keras+tensorflow and is wrapped in an R package.
+URL: https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699
+BugReports: https://github.com/morphos30/DeepG4/issues
+Date: 2020-07-24
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
