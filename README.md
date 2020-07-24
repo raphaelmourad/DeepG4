@@ -3,15 +3,7 @@
 
 ![logo](logo.svg)
 
-\[
-
-<h3>
-
-**DeepG4**: A deep learning approach to predict active G-quadruplexes
-
-</h3>
-
-\](<https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699>)
+### [**DeepG4**: A deep learning approach to predict active G-quadruplexes](https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699)
 
 *Vincent Rocher, Matthieu Genais, Elissar Nassereddine and Raphael
 Mourad*
