@@ -3,12 +3,13 @@
 #' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
 #' @param k size of the sliding windows.
 #' @param treshold  numeric value who define the treshold to use to consider a sequence asc ontaining an active G4.
+#' @param threads  numeric value who define the number of threads used in DeepG4Scan (Generate sub sequences)
 #'
 #' @return a data.frame with the position of potential active G4 across input sequences.
 #' @export
 #'
 #' @examples
-DeepG4Scan <- function(X=NULL,k=20,treshold = 0.5){
+DeepG4Scan <- function(X=NULL,k=20,treshold = 0.5,threads = 1){
     seq.size = 201
     #Check if X is provided
     if (is.null(X)) {
@@ -47,11 +48,11 @@ DeepG4Scan <- function(X=NULL,k=20,treshold = 0.5){
     }
     ## Check DNA composition
     if(class(X)[[1]] !="DNAString"&&length(X)>1){
-        results <- lapply(1:length(X),function(i){
+        results <- parallel::mclapply(1:length(X),function(i){
             x <- X[i][[1]]
             results <- cbind(seqnames= i,ExtractSubSequence(x=x,k=k,seq.size = seq.size))
             return(results)
-        })
+        },mc.cores = threads)
         results <- do.call(rbind,results)
     }else{
         if(class(X)[[1]] =="DNAStringSet"){

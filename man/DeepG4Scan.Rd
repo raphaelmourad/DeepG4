@@ -4,7 +4,7 @@
 \alias{DeepG4Scan}
 \title{Scanning of potential active G4 on a sequence or a list of sequences using a sliding window of size k.}
 \usage{
-DeepG4Scan(X = NULL, k = 20, treshold = 0.5)
+DeepG4Scan(X = NULL, k = 20, treshold = 0.5, threads = 1)
 }
 \arguments{
 \item{X}{An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.}
@@ -12,6 +12,8 @@ DeepG4Scan(X = NULL, k = 20, treshold = 0.5)
 \item{k}{size of the sliding windows.}
 
 \item{treshold}{numeric value who define the treshold to use to consider a sequence asc ontaining an active G4.}
+
+\item{threads}{numeric value who define the number of threads used in DeepG4Scan (Generate sub sequences)}
 }
 \value{
 a data.frame with the position of potential active G4 across input sequences.

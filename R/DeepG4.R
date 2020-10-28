@@ -204,15 +204,16 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
             truth = as.factor(Y),
             pred_prob = res[,1]
         )
-        prediction_table$estimate <- as.factor(ifelse(prediction_table$pred_prob<treshold,0,1))
+        prediction_table$estimate <- factor(ifelse(prediction_table$pred_prob<treshold,0,1),levels = c(1,0))
         if(length(levels(prediction_table$truth))==1){
             message("DeepG4: metrics can't be evaluated with no control cases (length(levels(Y))==1), return predictions")
             return(res)
         }
         if(length(levels(prediction_table$estimate))==1){
-            prediction_table$estimate <- factor(prediction_table$estimate,levels = c(0,1))
+            prediction_table$estimate <- factor(prediction_table$estimate,levels = c(1,0))
         }
         #Plot AUC
+        prediction_table$truth <- factor(prediction_table$truth,levels = c(1,0))
         plot_ROC <- ggplot2::autoplot(yardstick::roc_curve(prediction_table,`truth`,`pred_prob`))
         #Get metrics
         table_metrics <- yardstick::metrics(prediction_table,`truth`,`estimate`,`pred_prob`)
