@@ -1,6 +1,7 @@
 #' DeepG4 main function to predict a probability to form a G4, given a DNA sequence.
 #'
 #' @param X An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.
+#' @param X.atac a numeric vector of Average accessibility by sequence, with the same size as \code{X} (default to NULL).
 #' @param Y a numeric vector of 1 and 0 values (default to NULL).
 #' @param model a path to a keras model in hdf5 format (default to NULL). Don't change it unless you want to use our function with a custom model.
 #' @param lower.case a boolean. Set to \code{TRUE} if elements of X are in lower case (default to FALSE).
@@ -11,7 +12,7 @@
 #' @param log_odds a boolean. If set to TRUE then return the logarithm of the odds instead of probability (Layer before the sigmoid activation). Use only to compute a deltaScore between two sequences. Default to TRUE
 #' @details
 #'  This function is a wrapper to help people to get a prediction given any DNA sequence(s) of type ACGTN with our DeepG4 model.
-#'  You don't have to use it to get a DeepG4 prediction, if you're familar with keras and tensorflow, you can access our model in hdf5 package using \code{system.file("extdata", "model.hdf5", package = "DeepG4")}.
+#'  You don't have to use it to get a DeepG4 prediction, if you're familar with keras and tensorflow, you can access our model in hdf5 package using \code{system.file("extdata", "", package = "DeepG4")}.
 #'  In complement, \code{\link{DNAToNumerical}} can help you to get the one-hot conversion needed by our model as input.
 #'  If your sequences > \code{seq.size}, they will be cropped and sequences < \code{seq.size}, will be filled with zero padding.
 #' @return if \code{Y = NULL}, return DeepG4 prediction for each value of X.
@@ -27,9 +28,9 @@
 #'
 #' predictions <- DeepG4(sequences)
 #' head(predictions)
-DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.size = 201,retrain=FALSE,retrain.path="",log_odds=F){
+DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.size = 201,retrain=FALSE,retrain.path="",log_odds=F){
     model.regular.size.accepted <- 201
-    tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1)
+    tabv = c("T"=4,"G"=3,"C"=2,"A"=1)
     #Check if X is provided
     if (is.null(X)) {
         stop("X must be provided (see ?DeepG4 for accepted formats).",
@@ -68,6 +69,19 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
     }else if(class(X)[[1]] =="DNAString"){
         X <- Biostrings::DNAStringSet(X)
     }
+    # Check X.atac
+    if(!is.null(X.atac)){
+        if(length(X)!=length(X.atac)){
+            stop(paste0("X.atac must be the same length as X (",length(X),")."),
+                 call. = FALSE)
+        }
+        if(class(X.atac) != "numeric"){
+            stop(paste0("X.atac must be a numerical vector."),
+                 call. = FALSE)
+        }
+        default_model <- ifelse(is.null(X.atac),system.file("extdata", "DeepG4_classic_rescale_BW_sampling_02_03_2021/2021-03-02T16-17-28Z/best_model.h5", package = "DeepG4"),
+                                system.file("extdata", "DeepG4_ATAC_rescale_BW_sampling_02_03_2021/2021-03-02T16-01-34Z/best_model.h5", package = "DeepG4"))
+    }
     ## Check sequences sizes
     message("Check sequences sizes...")
     seqsizes <- Biostrings::nchar(X)
@@ -82,6 +96,9 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
     if(any(testNFreq)){
         message(paste0("Warning: Some of your sequences have a N frequency > 0.1 and will be removed.\nDeepG4 has difficulty to handle sequences with a N rate > 10%"))
         X <- X[!testNFreq]
+        if(!is.null(X.atac)){
+            X.atac <- X.atac[!testNFreq]
+        }
         if(length(X)<1){
             stop("Not enough sequences to continue ...",
                  call. = FALSE)
@@ -89,14 +106,23 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
     }
     ## One-Hot conversion
     message("One-Hot Conversion...")
-    if(length(seqsizes) == 1) {
+    if(length(unique(seqsizes)) == 1) {
         X <- DNAToNumerical(X,tabv = tabv,lower.case=lower.case,seq.size = seq.size)
     }else{
         ## Have to apply One-Hot independently because seq sizes are differents
-        X_by_size <- lapply(unique(Biostrings::nchar(X)),function(onesize){
-            DNAToNumerical(X[Biostrings::nchar(X)==onesize],tabv = tabv,lower.case=lower.case,seq.size = seq.size)
-        })
-        X <- array(unlist(X_by_size), dim = c(length(X),seq.size,length(tabv)))
+        X_by_size <- array(0, dim = c(length(X),seq.size,length(tabv)))
+        for(onesize in unique(Biostrings::nchar(X))){
+            X_by_size[Biostrings::nchar(X)==onesize,,] <- DNAToNumerical(X[Biostrings::nchar(X)==onesize],tabv = tabv,lower.case=lower.case,seq.size = seq.size)
+        }
+        X <- X_by_size
+        rm(X_by_size)
+    }
+    if(is.null(X.atac)){
+        X_inputs <- X
+        rm(X)
+    }else{
+        X_inputs <- list(X,X.atac)
+        rm(X,X.atac)
     }
     if(retrain){
         # IF RETRAIN = TRUE
@@ -119,7 +145,7 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
         # Try to load our saved model or custom model if !is.null(model)
         message("Loading model...")
         if(is.null(model)){
-            model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
+            model <-  default_model
         }else{
             if(class(model) != "character"){
                 stop("model must be a path to a keras model in hdf5 format",
@@ -138,7 +164,7 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
         # Retrain the model
         message("Training...")
         history <- keras::fit(model,
-                              X,
+                              X_inputs,
                               Y,
                               epochs = 20,
                               batch_size = 128,
@@ -155,7 +181,7 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
         # Try to load our saved model or custom model if !is.null(model)
         message("Loading model...")
         if(is.null(model)){
-            model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
+            model <-  default_model
             if(seq.size != model.regular.size.accepted){
                 message("Please don't manually set seq.size unless you want to use a custom model")
                 seq.size <- model.regular.size.accepted
@@ -173,7 +199,7 @@ DeepG4 <- function(X = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.si
             model <- keras::keras_model(inputs = model$input,
                                         outputs = keras::get_layer(model, index = 7)$output)
         }
-        res <- stats::predict(model,X)
+        res <- stats::predict(model,X_inputs)
     }
     # If Y is provided, instead of returning prediction, return accuracy / AUC
     if(is.null(Y)){
