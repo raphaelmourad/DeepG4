@@ -3,7 +3,9 @@
 
 ![logo](logo.svg)
 
-### [**DeepG4**: A deep learning approach to predict active G-quadruplexes](https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699)
+<!-- ### [__DeepG4__: A deep learning approach to predict active G-quadruplexes](https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699) -->
+
+### **DeepG4**: A deep learning approach to predict cell-type specific active G-quadruplex regions
 
 *Vincent Rocher, Matthieu Genais, Elissar Nassereddine and Raphael
 Mourad*
@@ -14,10 +16,10 @@ Mourad*
 coverage](https://codecov.io/gh/morphos30/DeepG4/branch/master/graph/badge.svg)](https://codecov.io/gh/morphos30/DeepG4?branch=master)
 <!-- badges: end -->
 
-**DeepG4** is a deep learning model developed to predict the probability
-of DNA sequences to form active G-Guadruplexes (found both in vitro and
-in vivo). **DeepG4** is built in keras+tensorflow and is wrapped in an R
-package.
+**DeepG4** is a deep learning model developed to predict a score of DNA
+sequences to form active G-Guadruplexes (found both in vitro and in
+vivo) using **DNA sequences** and **DNA accessibility**. **DeepG4** is
+built in keras+tensorflow and is wrapped in an R package.
 
 ## Requirements
 
@@ -49,33 +51,72 @@ devtools::install_github("morphos30/DeepG4")
 
 ## Basic usage of DeepG4
 
-If you have a small sequence (201bp or less), you can predict the
-probability that the sequence forms an active G4.
+Given small regions (bed) and an accessibility file (coverage file from
+ATAC-seq/DNAse-seq/MNase-seq), you can predict active G4 regions in a
+**specific cell type**:
 
 ``` r
-library(Biostrings)
+library(rtracklayer)
+library(BSgenome.Hsapiens.UCSC.hg19)
 library(DeepG4)
 
-sequences <- system.file("extdata", "test_G4_data.fa", package = "DeepG4")
-sequences <- readDNAStringSet(sequences)
+BED <- system.file("extdata", "test_G4_data.bed", package = "DeepG4")
+BED <- import.bed(BED)
+ATAC <- system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Accessibility.bw", package = "DeepG4")
+ATAC <- import.bw(ATAC)
 
-predictions <- DeepG4(sequences)
+Input_DeepG4 <- DeepG4InputFromBED(BED=BED,ATAC = ATAC,GENOME=BSgenome.Hsapiens.UCSC.hg19)
+
+Input_DeepG4
+```
+
+    [[1]]
+      A DNAStringSet instance of length 100
+          width seq
+      [1]   201 CTGCTGGAGCCCGCCTTACTGTGGGGTGGGGGGGGTACTGCCCTAAGAACTCCAC...CCCAGCATAGACAACCGTGAAAGCCAGAAGAGCTGGCAGAGTCTAGAAGTTGGC
+      [2]   201 CCCCTTGCCAGCCTACCTGGCTCAGGCCCGCCGCGCCCGCAGCCCCAGCGCGGTC...AGAGGACGCAGGCGAGAGGAACTCGGCGGCGCGGCGCCCGCGGCCTATTGGCTG
+      [3]   201 CACACACACTCTTATCAGGCTGGGGCAGGCACTGGCACTGCTGAGTCACCCACAG...TGACTGCTGGGGTTTTCCTCTCCCTAGCCCTTTGATTGAGTCAGGGGTGGGGAT
+      [4]   201 TCCGGCCCCGACCCCGCCCCTCCACGCCCCCAAGGAAACATGTCACTCGGGTTAC...CCACCCCGCGAGAGGCGCCGCCGGCGCCAGGTCCCAGTAGCGGGTGGGTCCTTG
+      [5]   201 GTCCCCACCCCCACCCCACTCAGGGCCAGTGCCTCCCCCTCTCCCGTCAGCTCAA...CACAGATTTTTCACTTCCTGTGCAGTCAGAAAAAGAGGCTCGAGGCTCCCGCTC
+      ...   ... ...
+     [96]   201 CAACCTGCACAGGCCCAGCAGGGCCCCTCCAGGTCTAGGTGAGCAGAGCTCCACC...GCGTGTGGGGGCGGGATACCGACGCGGCTCGGCTGCCGATTGGTCAGAAGAGGA
+     [97]   201 ATAACGCGTTGGCCCTTAAGAAAGATGGCATCTTTCCGCCTTCTCTGCCCCCTTC...GCCTGCGCCCGCGACGGAGGCGCGCTTCAAAGCGCAGGCGCGGGGAGGGGGTGG
+     [98]   201 TCCCTCTCCTCTTCCACGCCCCCTTCCCACTCCTCCCCCTCCTATCCTCTCCTGG...GGGGCGCCGGGCGGCCGGCGCGCTTGGCGGCAGCCGTGGGAGGCAGGCCGGCAG
+     [99]   201 GCGTATCCAGTCCCGCAGCTGACCAATCGGAGCTCGCCCTTCCGGGGCCCGCCCC...CTTCGGATCGCCGAGTAACGCTCACCAGACGTCCCGGCCCTGCCCCTCACCTGA
+    [100]   201 TTTAATCTGACTCATCTCCTTTGTAAACAGTAAGGTTATTGAGGGTGAAGATTAG...AAGGTGCCGCGTTTATAAAACTCACCCAAGGTTGGCCGGACGCAGTGGCTTACG
+
+    [[2]]
+      [1] 0.007955412 0.071087932 0.035285844 0.039676268 0.044947411 0.046581121 0.023230827 0.012387618 0.082391016
+     [10] 0.063834818 0.105390005 0.070236574 0.045107473 0.014299864 0.050958029 0.067799521 0.037895024 0.070339336
+     [19] 0.106714671 0.028458963 0.043110214 0.019460409 0.045468318 0.051063822 0.072862518 0.021933521 0.040137615
+     [28] 0.031299792 0.047589241 0.043257913 0.049913830 0.045461665 0.059799129 0.052672064 0.035330758 0.018697152
+     [37] 0.048048701 0.028188545 0.041206733 0.064739781 0.044424973 0.038454479 0.049460457 0.013845773 0.054174495
+     [46] 0.073740380 0.025285314 0.019293648 0.060486579 0.048533711 0.069902835 0.082091662 0.047145092 0.062299390
+     [55] 0.050818736 0.050709304 0.052714895 0.082551809 0.059438781 0.015752492 0.033484694 0.016623619 0.036711227
+     [64] 0.066732034 0.070644726 0.028875399 0.028216949 0.062955818 0.078560801 0.036991223 0.024028454 0.090778897
+     [73] 0.063415825 0.060858383 0.074535469 0.031581759 0.029659617 0.016819003 0.046221665 0.048693290 0.014504552
+     [82] 0.028334125 0.061296958 0.038678159 0.070923668 0.026397743 0.046453539 0.035868461 0.084673908 0.050543118
+     [91] 0.042999488 0.034977892 0.040536342 0.039773488 0.077641724 0.055479821 0.053179943 0.039231167 0.068145290
+    [100] 0.013834445
+
+Then predict using both **DNA** and **Accessibility** :
+
+``` r
+predictions <- DeepG4(X=Input_DeepG4[[1]],X.atac = Input_DeepG4[[2]])
 head(predictions)
 ```
 
-``` 
-          [,1]
-[1,] 0.9998598
-[2,] 0.9993761
-[3,] 0.9539083
-[4,] 0.9974855
-[5,] 0.9908580
-[6,] 0.9999917
-```
+              [,1]
+    [1,] 0.9280036
+    [2,] 1.0000000
+    [3,] 0.9964566
+    [4,] 0.9999996
+    [5,] 0.9999791
+    [6,] 0.9999921
 
 ## Advanced usage of DeepG4
 
-If you have a large sequence (\>201bp up to several Mbp), you can scan
+If you have a large sequence (&gt;201bp up to several Mbp), you can scan
 the sequence and predict the positions of active G4s within the
 sequence.
 
@@ -88,7 +129,7 @@ res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
 
 DeepG4Scan function scans each input sequence with a step of `k=20` and
 outputs for each input sequence the G4 positions (+/- 100bp) and the
-corresponding DeepG4 probabilities (\>= treshold).
+corresponding DeepG4 probabilities (&gt;= treshold).
 
 ``` r
 library(dplyr)
@@ -177,11 +218,10 @@ print(plot_grid(plotlist = p.pcm,ncol=2))
 ## Using DeepG4 with a new active G4 dataset
 
 If you want to use our model architecture, but retrain with your own
-dataset, you can do it by running our function `DeepG4` with `retrain =
-TRUE`
+dataset, you can do it by running our function `DeepG4` with
+`retrain = TRUE`
 
 ``` r
-
 library(Biostrings)
 library(DeepG4)
 library(rsample)
