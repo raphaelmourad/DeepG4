@@ -1,15 +1,4 @@
-#' Title
-#'
-#' @param BED
-#' @param ATAC
-#' @param is.bw
-#' @param GENOME
-#'
-#' @return
-#' @export
-#'
-#' @examples
-DeepG4InputFromBED <- function(BED = NULL,ATAC = NULL,is.bw = TRUE,GENOME = NULL){
+DeepG4InputFromBED <- function(BED = NULL,ATAC = NULL,is.bw = TRUE,GENOME = NULL,use.bg = TRUE,windows_bg=5000,treshold_bg = 2){
     if (is.null(GENOME)) {
         stop("GENOME must be provided (see ?DeePG4InputFromBED for accepted formats).",
              call. = FALSE)
@@ -94,9 +83,24 @@ DeepG4InputFromBED <- function(BED = NULL,ATAC = NULL,is.bw = TRUE,GENOME = NULL
              call. = FALSE)
     }
     #Normalize ATAC-seq using the previously computed bins
+    BED$order <- 1:length(BED)
+    X <- Biostrings::getSeq(GENOME,BED)
+    BED <- BiocGenerics::sort(GenomeInfoDb::sortSeqlevels(BED))
+
     binbed <- rtracklayer::import.bed(system.file("extdata", "random_region_for_scaling_min_max.bed", package = "DeepG4"))
     ATAC <- NormBW(ATAC,binbed)
     X.ATAC <- getScoreBW(ATAC,BED)
-    X <- Biostrings::getSeq(GENOME,BED)
+    X.ATAC[is.na(X.ATAC)] <- 0
+
+    if(use.bg){
+        BED.bg <- resize(BED,windows_bg,fix="center")
+        X.ATAC.bg <- getScoreBW(ATAC,BED.bg)
+        X.ATAC.bg[is.na(X.ATAC.bg)] <- 0
+        my_test <- (X.ATAC/X.ATAC.bg)<treshold_bg
+        X.ATAC[my_test] <- 0
+    }
+
+    X.ATAC <- X.ATAC[order(BED$order)]
+
     return(list(X,as.vector(X.ATAC)))
 }

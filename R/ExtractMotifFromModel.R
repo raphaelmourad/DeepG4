@@ -10,10 +10,10 @@
 #'  built the corresponding position count matrix.
 #' @return A list of Position Count Matrix.
 #' @export
-ExtractMotifFromModel <- function(X = NULL,Y=NULL,lower.case=F,top_kernel = 20){
+ExtractMotifFromModel <- function(X = NULL,Y=NULL,lower.case=F,top_kernel = 20,model.atac = T){
     seq.size <- 201
     kernel_size <- 20
-    tabv = c("N"=5,"T"=4,"G"=3,"C"=2,"A"=1)
+    tabv = c("T"=4,"G"=3,"C"=2,"A"=1)
     #Check if X is provided
     if (is.null(X)) {
         stop("X must be provided (see ?DeepG4 for accepted formats).",
@@ -82,12 +82,21 @@ ExtractMotifFromModel <- function(X = NULL,Y=NULL,lower.case=F,top_kernel = 20){
         })
         X_oh <- array(unlist(X_by_size), dim = c(length(X),seq.size,length(tabv)))
     }
-    model <-  system.file("extdata", "model.hdf5", package = "DeepG4")
-    #Load model with keras (tensorflow must be installed as well)
-    model <- keras::load_model_hdf5(model)
-    weights <- keras::get_weights(object = model)[[1]]
-    Convolution <- keras::keras_model(inputs = model$input,
-                               outputs = keras::get_layer(model, index = 2)$output)
+    if(model.atac){
+        # IF TRUE, we use the model with accessibility and input will be differents
+        model <- system.file("extdata", "DeepG4_ATAC_rescale_BW_sampling_02_03_2021/2021-03-02T16-01-34Z/best_model.h5", package = "DeepG4")
+        #Load model with keras (tensorflow must be installed as well)
+        model <- keras::load_model_hdf5(model)
+        Convolution <- keras::keras_model(inputs = model$input[[1]],
+                                          outputs = keras::get_layer(model, index = 2)$output)
+    }else{
+        model <- system.file("extdata", "DeepG4_classic_rescale_BW_sampling_02_03_2021/2021-03-02T16-17-28Z/best_model.h5", package = "DeepG4")
+        #Load model with keras (tensorflow must be installed as well)
+        model <- keras::load_model_hdf5(model)
+        Convolution <- keras::keras_model(inputs = model$input,
+                                          outputs = keras::get_layer(model, index = 2)$output)
+    }
+
     res <- stats::predict(Convolution,X_oh)
     kernels_information <- colSums(apply(res,c(1,3),max))
     nb_of_kernels <- length(kernels_information)

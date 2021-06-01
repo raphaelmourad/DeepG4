@@ -79,9 +79,10 @@ DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshol
             stop(paste0("X.atac must be a numerical vector."),
                  call. = FALSE)
         }
-        default_model <- ifelse(is.null(X.atac),system.file("extdata", "DeepG4_classic_rescale_BW_sampling_02_03_2021/2021-03-02T16-17-28Z/best_model.h5", package = "DeepG4"),
-                                system.file("extdata", "DeepG4_ATAC_rescale_BW_sampling_02_03_2021/2021-03-02T16-01-34Z/best_model.h5", package = "DeepG4"))
     }
+    default_model <- ifelse(is.null(X.atac),system.file("extdata", "DeepG4_classic_rescale_BW_sampling_02_03_2021/2021-03-02T16-17-28Z/best_model.h5", package = "DeepG4"),
+                            system.file("extdata", "DeepG4_ATAC_rescale_BW_sampling_02_03_2021/2021-03-02T16-01-34Z/best_model.h5", package = "DeepG4"))
+    log_odds_index <- ifelse(is.null(X.atac),7,9)
     ## Check sequences sizes
     message("Check sequences sizes...")
     seqsizes <- Biostrings::nchar(X)
@@ -171,7 +172,7 @@ DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshol
                               validation_split = 0.2,
                               verbose= 0)
         message("Done !...")
-        res <- stats::predict(model,X)
+        res <- stats::predict(model,X_inputs)
         if(retrain.path == ""){
             retrain.path <- paste0("DeepG4_retrained_",Sys.Date(),".hdf5")
         }
@@ -197,7 +198,7 @@ DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshol
         if(log_odds){
             # If log_odds is set to TRUE, return instead a real number computed by the layer before the sigmoid activation (or the last layer without sigmoid)
             model <- keras::keras_model(inputs = model$input,
-                                        outputs = keras::get_layer(model, index = 7)$output)
+                                        outputs = keras::get_layer(model, index = log_odds_index)$output)
         }
         res <- stats::predict(model,X_inputs)
     }
