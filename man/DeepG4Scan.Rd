@@ -2,22 +2,21 @@
 % Please edit documentation in R/DeepG4Scan.R
 \name{DeepG4Scan}
 \alias{DeepG4Scan}
-\title{Scanning of potential active G4 on a sequence or a list of sequences using a sliding window of size k.}
+\title{Standard method to call}
 \usage{
-DeepG4Scan(X = NULL, k = 20, treshold = 0.5, threads = 1)
+DeepG4Scan(X, ...)
 }
 \arguments{
-\item{X}{An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.}
+\item{X}{One of character, list, DNAString, DNAStringSet, DNAStringSetList, GRanges}
 
-\item{k}{size of the sliding windows.}
-
-\item{treshold}{numeric value who define the treshold to use to consider a sequence asc ontaining an active G4.}
-
-\item{threads}{numeric value who define the number of threads used in DeepG4Scan (Generate sub sequences)}
+\item{...}{}
 }
 \value{
-a data.frame with the position of potential active G4 across input sequences.
+
 }
 \description{
-Scanning of potential active G4 on a sequence or a list of sequences using a sliding window of size k.
+Standard method to call
+}
+\details{
+This function is a method who launch ?callDeepG4Scan or .callDeepG4ScanATAC based on the arguments who are passed on. See ?.callDeepG4ScanATAC or ?.callDeepG4Scan.
 }

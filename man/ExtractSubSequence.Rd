@@ -2,16 +2,20 @@
 % Please edit documentation in R/ExtractSubSequence.R
 \name{ExtractSubSequence}
 \alias{ExtractSubSequence}
-\title{Title}
+\title{ExtractSubSequencefromBed : Internal function for DeepG4Scan.}
 \usage{
 ExtractSubSequence(x = NULL, k = 20, seq.size = 201)
 }
 \arguments{
-\item{seq.size}{}
+\item{x}{An object of class GRanges.}
+
+\item{k}{size of the sliding windows.}
+
+\item{seq.size}{numeric value representing the sequence size accepted by our model. Don't change it unless you want to use our function with a custom model.}
 }
 \value{
-
+A data.frame with position of subsequence and DNA sequence.
 }
 \description{
-Title
+ExtractSubSequencefromBed : Internal function for DeepG4Scan.
 }

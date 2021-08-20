@@ -1,0 +1,123 @@
+
+> # Author : ROCHER Vincent
+> # Date: 19/04/2020 (Modified)
+> #Data from input from ../data_generation/generate_DeepG4_ATAC_test_with_normalize_by_bac .... [TRUNCATED] 
+
+> library(yardstick)
+
+> library(tidyverse)
+
+> #Source scripts
+> #Prediction functions used for evaluate a model
+> ##Return the prediction table based on real values and predicted values
+> predic .... [TRUNCATED] 
+
+> ##Return three metrics : auc, accuracy and kap
+> prediction_metrics <- function(predict_value){
++   AUC <- predict_value  %>% roc_auc(truth,pred_pro .... [TRUNCATED] 
+
+> ##Return the roc curve of the model
+> plot_roc <- function(predict_value){
++   predict_value %>% roc_curve(truth,pred_prob) %>% autoplot()
++ }
+
+> ##Return the confusion matrix represented as ggplot object
+> plot_confusion_matrix <- function(predict_value){
++   p <- predict_value %>% conf_mat(t .... [TRUNCATED] 
+
+> evaluate_model <- function(y,y.pred.prob,y.pred.classes){
++   predict_value <- prediction_table(y,y.pred.prob,y.pred.classes)
++   table.1 <- predict .... [TRUNCATED] 
+
+> ##Obtain the probability
+> get_proba_classes <- function(model,x_test,type = "Sequential",treshold = 0.5){
++   if(type == "Sequential"){
++     pred_ .... [TRUNCATED] 
+
+> # FLAGS 
+> FLAGS <- flags(
++   flag_string("activation","relu"),
++   flag_numeric("filters1",900),
++   flag_numeric("kernel_size1",24),
++   flag_num .... [TRUNCATED] 
+
+> #Load data
+> OneHotBG4_data <- readRDS(str_c(FLAGS$input,"_OneHot_train_test.rds"))
+
+> c(x_train,x_ATAC_train, y_train) %<-% OneHotBG4_data$train
+
+> c(x_test,x_ATAC_test, y_test) %<-% OneHotBG4_data$test
+
+> vocab_size <- dim(x_train)[3]
+
+> # x_ATAC_train <- x_ATAC_train[[1]]
+> # x_ATAC_test <- x_ATAC_test[[1]]
+> # x_ATAC_train <- apply(x_ATAC_train,1,mean)
+> # x_ATAC_test <- apply(x_AT .... [TRUNCATED] 
+
+> atac_input_shape <- 1
+
+> #First part of the model : convolution
+> conv_input <- layer_input(shape = conv_input_shape,name = "conv_input")
+
+> #Second part of the model : stack of dense taking motif
+> motif_output <- conv_input %>%
++   layer_conv_1d(filters = FLAGS$filters1, kernel_size = F .... [TRUNCATED] 
+
+> atac_input <- layer_input(shape = atac_input_shape,name = "atac_input")
+
+> main_output <- layer_concatenate(c(motif_output,atac_input)) %>% 
++   layer_dropout(FLAGS$dropout1) %>% 
++   layer_dense(FLAGS$dense_1) %>% 
++   lay .... [TRUNCATED] 
+
+> model <- keras_model(
++   inputs = c(conv_input,atac_input),
++   outputs = c(main_output)
++ )
+
+> if(FLAGS$optimizer == "rmsprop"){
++   opt <- optimizer_rmsprop(lr = FLAGS$learning_rate)
++ }else if(FLAGS$optimizer == "adam"){
++   opt <- optimizer .... [TRUNCATED] 
+
+> model %>% compile(
++   optimizer = opt,
++   loss = FLAGS$loss,
++   metrics = c('accuracy')
++ )
+
+> #train the model
+> history <- model %>% fit(
++   x = list(x_train,x_ATAC_train),
++   y = y_train,
++   epochs = FLAGS$epoch,
++   batch_size = 128,
++  .... [TRUNCATED] 
+
+> # model %>% save_model_hdf5("model.h5")
+> #Model evaluation
+> plot(history)
+
+> model <- load_model_hdf5("best_model.h5")
+
+> #Model evaluation
+> plot(history)
+
+> pred_prob <- model %>% predict(list(x_test,x_ATAC_test))
+
+> pred_class <- ifelse(pred_prob<0.5,0,1)
+
+> c(table.1,p.1,p.2) %<-% evaluate_model(y_test,1-pred_prob,pred_class)
+
+> table.1
+# A tibble: 3 x 3
+  .metric  .estimator .estimate
+  <chr>    <chr>          <dbl>
+1 roc_auc  binary         0.990
+2 accuracy binary         0.953
+3 kap      binary         0.906
+
+> print(p.1)
+
+> print(p.2)

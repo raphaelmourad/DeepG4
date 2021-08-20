@@ -3,9 +3,11 @@
 
 ![logo](logo.svg)
 
-<!-- ### [__DeepG4__: A deep learning approach to predict active G-quadruplexes](https://www.biorxiv.org/content/early/2020/07/23/2020.07.22.215699) -->
+### [**DeepG4**: A deep learning approach to predict cell-type specific active G-quadruplex regions](https://journals.plos.org/ploscompbiol/article/comments?id=10.1371/journal.pcbi.1009308)
 
-### **DeepG4**: A deep learning approach to predict cell-type specific active G-quadruplex regions
+The predictions for differents tissues and cancer with DeepG4 is
+available
+[here](https://github.com/morphos30/DeepG4ToolsComparison/tree/main/prediction_genome/bed/predictions).
 
 *Vincent Rocher, Matthieu Genais, Elissar Nassereddine and Raphael
 Mourad*
@@ -109,22 +111,24 @@ head(predictions)
 ```
 
               [,1]
-    [1,] 0.2159184
-    [2,] 0.8819393
-    [3,] 0.9991976
-    [4,] 0.9999995
-    [5,] 0.9740031
-    [6,] 0.2259631
+    [1,] 0.8264647
+    [2,] 0.5786501
+    [3,] 0.9986098
+    [4,] 0.9999884
+    [5,] 0.9239593
+    [6,] 0.1403053
 
 ### Without accessbility
 
 You still can predict active G4 regions using only **DNA** sequences :
 
 ``` r
-library(rtracklayer)
+library(Biostrings)
 library(DeepG4)
 
-sequences <- readDNAStringSet(system.file("extdata", "test_G4_data.fa", package = "DeepG4"))
+BED <- system.file("extdata", "test_G4_data.bed", package = "DeepG4")
+BED <- import.bed(BED)
+
 predictions <- DeepG4(X=sequences)
 head(predictions)
 ```
@@ -137,31 +141,79 @@ head(predictions)
     [5,] 0.9119551
     [6,] 0.2471965
 
-<!-- ## Advanced usage of DeepG4 -->
-<!-- If you have a large sequence (>201bp up to several Mbp), you can scan the sequence  and predict the positions of active G4s within the sequence. -->
-<!-- ``` r -->
-<!-- library(Biostrings) -->
-<!-- library(DeepG4) -->
-<!-- sequences <- readDNAStringSet(system.file("extdata", "promoters_seq_example.fa", package = "DeepG4")) -->
-<!-- res <- DeepG4Scan(X = sequences,k=20,treshold=0.5) -->
-<!-- ``` -->
-<!-- DeepG4Scan function scans each input sequence with a step of  `k=20` and outputs for each input sequence the G4 positions (+/- 100bp) and the corresponding DeepG4 probabilities (>= treshold). -->
-<!-- ``` r -->
-<!-- library(dplyr) -->
-<!-- res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  head -->
-<!-- ``` -->
-<!-- ``` -->
-<!-- # A tibble: 6 x 5 -->
-<!-- # Groups:   seqnames [3] -->
-<!--   seqnames start   end width score -->
-<!--      <int> <int> <int> <int> <dbl> -->
-<!-- 1        1  1241  1441   201 0.670 -->
-<!-- 2        1  1261  1461   201 0.659 -->
-<!-- 3        2  1481  1681   201 0.648 -->
-<!-- 4        2  1521  1721   201 0.517 -->
-<!-- 5        3  2161  2361   201 0.723 -->
-<!-- 6        3  2181  2381   201 0.998 -->
-<!-- ``` -->
+## Advanced usage of DeepG4
+
+If you have a large sequence (&gt;201bp up to several Mbp), you can scan
+the sequence and predict the positions of active G4s within the
+sequence.
+
+### With accessibility
+
+``` r
+library(rtracklayer)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(DeepG4)
+
+BED <- system.file("extdata", "promoters_seq_example.bed", package = "DeepG4")
+BED <- import.bed(BED)
+ATAC <- system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Accessibility.bw", package = "DeepG4")
+ATAC <- import.bw(ATAC)
+
+
+res <- DeepG4Scan(X = BED,X.ATAC=ATAC,k=20,treshold=0.5,GENOME=BSgenome.Hsapiens.UCSC.hg19)
+```
+
+DeepG4Scan function scans each input sequence with a step of `k=20` and
+outputs for each input sequence the G4 positions (+/- 100bp) and the
+corresponding DeepG4 probabilities (&gt;= treshold).
+
+``` r
+library(dplyr)
+res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  head
+```
+
+    # A tibble: 6 x 5
+    # Groups:   seqnames [3]
+      seqnames     start       end width score
+      <fct>        <int>     <int> <int> <dbl>
+    1 chr15     63569229  63569429   201 0.690
+    2 chr15     63569249  63569449   201 0.810
+    3 chr2     131850345 131850545   201 0.548
+    4 chr2     131850385 131850585   201 0.671
+    5 chr5      10562715  10562915   201 0.547
+    6 chr5      10562735  10562935   201 0.503
+
+### Without accessibility
+
+``` r
+library(Biostrings)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(DeepG4)
+
+sequences <- import.bed(system.file("extdata", "promoters_seq_example.bed", package = "DeepG4"))
+sequences <- getSeq(BSgenome.Hsapiens.UCSC.hg19,sequences)
+res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
+```
+
+DeepG4Scan function scans each input sequence with a step of `k=20` and
+outputs for each input sequence the G4 positions (+/- 100bp) and the
+corresponding DeepG4 probabilities (&gt;= treshold).
+
+``` r
+library(dplyr)
+res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  head
+```
+
+    # A tibble: 6 x 5
+    # Groups:   seqnames [3]
+      seqnames start   end width score
+         <int> <int> <int> <int> <dbl>
+    1        1  2421  2621   201 0.514
+    2        1  2461  2661   201 0.654
+    3        2  1841  2041   201 0.813
+    4        2  1861  2061   201 0.735
+    5        3   961  1161   201 0.579
+    6        3   981  1181   201 0.554
 
 ## Scan DeepG4 DNA motifs from the input sequences
 
@@ -230,7 +282,7 @@ training[[4]]
     # A tibble: 4 x 3
       .metric     .estimator .estimate
       <chr>       <chr>          <dbl>
-    1 accuracy    binary        0.989 
-    2 kap         binary        0.978 
-    3 mn_log_loss binary        0.0429
+    1 accuracy    binary        0.987 
+    2 kap         binary        0.973 
+    3 mn_log_loss binary        0.0525
     4 roc_auc     binary        0.999 

@@ -30,6 +30,10 @@
 #' head(predictions)
 DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshold = 0.5,seq.size = 201,retrain=FALSE,retrain.path="",log_odds=F){
     model.regular.size.accepted <- 201
+    if(seq.size != model.regular.size.accepted & retrain != TRUE){
+        message("Please don't manually set seq.size unless you want to use a custom model")
+        seq.size <- model.regular.size.accepted
+    }
     tabv = c("T"=4,"G"=3,"C"=2,"A"=1)
     #Check if X is provided
     if (is.null(X)) {
@@ -81,7 +85,7 @@ DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshol
         }
     }
     default_model <- ifelse(is.null(X.atac),system.file("extdata", "DeepG4_classic_rescale_BW_sampling_02_03_2021/2021-03-02T16-17-28Z/best_model.h5", package = "DeepG4"),
-                            system.file("extdata", "DeepG4_ATAC_rescale_BW_sampling_02_03_2021/2021-03-02T16-01-34Z/best_model.h5", package = "DeepG4"))
+                            system.file("extdata", "DeepG4_ATAC_rescale_BW_by_bg_5kb_seuil_2_19_04_2021/2021-07-06T07-59-11Z/best_model.h5", package = "DeepG4"))
     log_odds_index <- ifelse(is.null(X.atac),7,9)
     ## Check sequences sizes
     message("Check sequences sizes...")
@@ -183,10 +187,7 @@ DeepG4 <- function(X = NULL,X.atac = NULL,Y=NULL,model=NULL,lower.case=F,treshol
         message("Loading model...")
         if(is.null(model)){
             model <-  default_model
-            if(seq.size != model.regular.size.accepted){
-                message("Please don't manually set seq.size unless you want to use a custom model")
-                seq.size <- model.regular.size.accepted
-            }
+
         }else{
             if(class(model) != "character"){
                 stop("model must be a path to a keras model in hdf5 format",

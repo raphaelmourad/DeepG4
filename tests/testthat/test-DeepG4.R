@@ -59,8 +59,13 @@ test_that("Two sequence with N>=0.1", {
     expect_error(DeepG4(X = myseq))
 })
 
-sequences.pos <- readDNAStringSet("/home/rochevin/Documents/PROJET_THESE/scriptsDeepG4/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b.Fa")[1:1000]
-sequences.ctrl <- readDNAStringSet("/home/rochevin/Documents/PROJET_THESE/scriptsDeepG4/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM.Fa")[1:1000]
+
+require(BSgenome.Hsapiens.UCSC.hg19)
+sequences.pos <- import.bed(system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b.bed", package = "DeepG4"))[1:1000]
+sequences.pos <- Biostrings::getSeq(BSgenome.Hsapiens.UCSC.hg19,sequences.pos)
+sequences.ctrl <- import.bed(system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM.bed", package = "DeepG4"))[1:1000]
+sequences.ctrl <- Biostrings::getSeq(BSgenome.Hsapiens.UCSC.hg19,sequences.ctrl)
+
 sequences <- c(sequences.pos,sequences.ctrl)
 # Generate classes
 Y <- c(rep(1,length(sequences.pos)),rep(0,length(sequences.ctrl)))
@@ -72,14 +77,14 @@ y.train <- Y[train_ind]
 y.test <- Y[-train_ind]
 #Test with training
 test_that("Test with training no path", {
-    training <- DeepG4(x.train,y.train,retrain=T)
+    training <- DeepG4(X=x.train,Y=y.train,retrain=T)
     expect_is(training[[1]], "matrix")
     expect_is(training[[2]], "ggplot")
     expect_is(training[[3]], "ggplot")
     expect_is(training[[4]], "data.frame")
 })
 test_that("Test with training with path", {
-    training <- DeepG4(x.train,y.train,retrain=T,retrain.path = "/home/rochevin/Documents/PROJET_THESE/DeepG4/model_retrained.h5")
+    training <- DeepG4(X=x.train,Y=y.train,retrain=T,retrain.path = "../DeepG4_retrained_2021-08-20.hdf5")
     expect_is(training[[1]], "matrix")
     expect_is(training[[2]], "ggplot")
     expect_is(training[[3]], "ggplot")
@@ -90,11 +95,11 @@ test_that("Test with training error Y", {
     expect_error(DeepG4(X=x.train,Y=c("cc1","cc2"),retrain=T))
     expect_error(DeepG4(X=x.train,Y=c(3,4),retrain=T))
     expect_error(DeepG4(X=x.train,retrain=T))
-    expect_error(DeepG4(x.train,y.train,retrain.path="/home/rochevin/Documents/PROJET_THESE/DeepG4/model_retrained.h5",retrain=T,model=1))
+    expect_error(DeepG4(X=x.train,Y=y.train,retrain.path="../DeepG4_retrained_2021-08-20.hdf5",retrain=T,model=1))
 })
 #Test with evaluation
 test_that("Test with evaluation", {
-    training <- DeepG4(x.test,y.test,model = "/home/rochevin/Documents/PROJET_THESE/DeepG4/model_retrained.h5")
+    training <- DeepG4(X=x.test,Y=y.test,model = "../DeepG4_retrained_2021-08-20.hdf5")
     expect_is(training[[1]], "matrix")
     expect_is(training[[2]], "ggplot")
     expect_is(training[[3]], "ggplot")
@@ -195,5 +200,40 @@ test_that("estimate levels = 0", {
 
 test_that("Return log of the odds instead of probability (set log_odds to TRUE)", {
     res <- DeepG4(X = test_sequences[1:2],log_odds=T)
+    expect_is(res, "matrix")
+})
+
+
+# ATAC-SEQ PART
+BED <- system.file("extdata", "test_G4_data.bed", package = "DeepG4")
+BED <- import.bed(BED)[1:10]
+ATAC <- system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Accessibility.bw", package = "DeepG4")
+ATAC <- import.bw(ATAC)
+
+Input_DeepG4 <- DeepG4InputFromBED(BED=BED,ATAC = ATAC,GENOME=BSgenome.Hsapiens.UCSC.hg19)
+test_that("With X.atac not null : length(X)!=length(X.atac)", {
+    expect_error(DeepG4(X=Input_DeepG4[[1]][1:9],X.atac = Input_DeepG4[[2]]))
+})
+test_that("With X.atac not null : class(X.atac) != numeric", {
+    expect_error(DeepG4(X=Input_DeepG4[[1]],X.atac = rep("coucou",10)))
+})
+
+test_that("With X.atac not null : Two sequence with N>=0.1", {
+    myseq <- Biostrings::subseq(Input_DeepG4[[1]][1:2],start = 1,width=201)
+    samplesize <- round(Biostrings::nchar(myseq[1])*0.2)
+    sampleMat <- matrix(FALSE,nrow = length(myseq),ncol = Biostrings::nchar(myseq[1]))
+    for(i in 1:length(myseq)){
+        sampleMat[i,sample(1:Biostrings::nchar(myseq[1]),samplesize)] <- TRUE
+    }
+    myseq <- replaceLetterAt(myseq,sampleMat,DNAStringSet(unlist(lapply(1:nrow(sampleMat),function(x){paste0(rep("N",samplesize),collapse="")}))))
+    expect_error(DeepG4(X=myseq,X.atac = Input_DeepG4[[2]][1:2]))
+})
+
+test_that("With X.atac not null : length(unique(seqsizes)) != 1", {
+
+    myseq <- Input_DeepG4[[1]]
+    myseq[[1]] <- DNAString(paste(Input_DeepG4[[1]][1:2],collapse=""))
+
+    res <- DeepG4(X=myseq,X.atac = Input_DeepG4[[2]],seq.size=563)
     expect_is(res, "matrix")
 })

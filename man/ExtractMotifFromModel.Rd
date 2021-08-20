@@ -4,7 +4,13 @@
 \alias{ExtractMotifFromModel}
 \title{ExtractMotifFromModel allow the user to extract motifs who are activated by the sequences in our model.}
 \usage{
-ExtractMotifFromModel(X = NULL, Y = NULL, lower.case = F, top_kernel = 20)
+ExtractMotifFromModel(
+  X = NULL,
+  Y = NULL,
+  lower.case = F,
+  top_kernel = 20,
+  model.atac = T
+)
 }
 \arguments{
 \item{X}{An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.}

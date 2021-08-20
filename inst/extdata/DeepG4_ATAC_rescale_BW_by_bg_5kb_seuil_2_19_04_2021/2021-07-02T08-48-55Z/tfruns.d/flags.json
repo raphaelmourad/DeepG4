@@ -1,0 +1,13 @@
+{
+  "activation": "relu",
+  "filters1": 500,
+  "kernel_size1": 20,
+  "pool_size1": 16,
+  "dropout1": 0,
+  "dense_1": 100,
+  "optimizer": "rmsprop",
+  "learning_rate": 0.001,
+  "loss": "binary_crossentropy",
+  "epoch": 20,
+  "input": "/home/disleg/Documents/Vincent/DeepG4/scripts/ATACseq_18012020/PIPELINE/DVP_github/DeepG4ToolsComparison/rds/Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Ctrl_gkmSVM_0.8_42_rescale_BW_by_bg_5kb_seuil_2"
+}

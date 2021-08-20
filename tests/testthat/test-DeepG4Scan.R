@@ -147,3 +147,63 @@ test_that("Two sequence with exactly 201bp", {
     expect_named(res,c("seqnames","start","end","width","seq","score"))
     expect_is(res, "data.frame")
 })
+
+
+#ATAC-seq PART
+BED <- system.file("extdata", "test_G4_data.bed", package = "DeepG4")
+BED <- import.bed(BED)[1:10]
+ATAC <- system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Accessibility.bw", package = "DeepG4")
+ATAC <- import.bw(ATAC)
+
+test_that("X.ATAC numerical", {
+    expect_error(DeepG4Scan(X = GRanges("chr1:1-201"),X.ATAC = c(0),GENOME=BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19))
+})
+test_that("GENOME NOT PROVIDED", {
+    expect_error(DeepG4Scan(X = GRanges("chr1:1-201"),X.ATAC = ATAC))
+})
+test_that("GENOME NOT BSGenome", {
+    expect_error(DeepG4Scan(X = GRanges("chr1:1-201"),X.ATAC = ATAC,GENOME="oui"))
+})
+
+test_that("One sequence with score < treshold", {
+    myseq <- Biostrings::subseq(test_sequences[[1]],start = 1,width=201)
+    expect_error(DeepG4Scan(X = myseq))
+})
+
+
+#One sequence
+
+test_that("One sequence with GRanges object", {
+    res <- DeepG4Scan(X = BED[1],X.ATAC = ATAC,GENOME=BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+    expect_named(res,c("seqnames","start","end","width","score","seq"))
+    expect_is(res, "data.frame")
+})
+
+
+test_that("One sequence with GRanges object and ATAC as SimpleRleList", {
+    res <- DeepG4Scan(X = BED[1],X.ATAC = coverage(ATAC,weight="score"),GENOME=BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+    expect_named(res,c("seqnames","start","end","width","score","seq"))
+    expect_is(res, "data.frame")
+})
+
+
+test_that("One sequence with exactly 201bp", {
+
+    res <- DeepG4Scan(X = resize(BED[1],201),X.ATAC = ATAC,GENOME=BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+    expect_named(res,c("seqnames","start","end","width","score","seq"))
+    expect_is(res, "data.frame")
+})
+
+#promoters
+
+test_that("test with promoters",{
+    BED <- system.file("extdata", "promoters_seq_example.bed", package = "DeepG4")
+    BED <- import.bed(BED)
+    ATAC <- system.file("extdata", "Peaks_BG4_G4seq_HaCaT_GSE76688_hg19_201b_Accessibility.bw", package = "DeepG4")
+    ATAC <- import.bw(ATAC)
+
+
+    res <- DeepG4Scan(X = BED,X.ATAC=ATAC,k=20,treshold=0.5,GENOME=BSgenome.Hsapiens.UCSC.hg19,threads=10)
+    expect_named(res,c("seqnames","start","end","width","score","seq"))
+    expect_is(res, "data.frame")
+})

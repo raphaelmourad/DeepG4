@@ -6,6 +6,7 @@
 \usage{
 DeepG4(
   X = NULL,
+  X.atac = NULL,
   Y = NULL,
   model = NULL,
   lower.case = F,
@@ -18,6 +19,8 @@ DeepG4(
 }
 \arguments{
 \item{X}{An object of class character,list or DNAStringSet/DNAStringSetList with DNA sequences.}
+
+\item{X.atac}{a numeric vector of Average accessibility by sequence, with the same size as \code{X} (default to NULL).}
 
 \item{Y}{a numeric vector of 1 and 0 values (default to NULL).}
 
@@ -44,7 +47,7 @@ DeepG4 main function to predict a probability to form a G4, given a DNA sequence
 }
 \details{
 This function is a wrapper to help people to get a prediction given any DNA sequence(s) of type ACGTN with our DeepG4 model.
- You don't have to use it to get a DeepG4 prediction, if you're familar with keras and tensorflow, you can access our model in hdf5 package using \code{system.file("extdata", "model.hdf5", package = "DeepG4")}.
+ You don't have to use it to get a DeepG4 prediction, if you're familar with keras and tensorflow, you can access our model in hdf5 package using \code{system.file("extdata", "", package = "DeepG4")}.
  In complement, \code{\link{DNAToNumerical}} can help you to get the one-hot conversion needed by our model as input.
  If your sequences > \code{seq.size}, they will be cropped and sequences < \code{seq.size}, will be filled with zero padding.
 }

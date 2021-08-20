@@ -84,7 +84,7 @@ ExtractMotifFromModel <- function(X = NULL,Y=NULL,lower.case=F,top_kernel = 20,m
     }
     if(model.atac){
         # IF TRUE, we use the model with accessibility and input will be differents
-        model <- system.file("extdata", "DeepG4_ATAC_rescale_BW_sampling_02_03_2021/2021-03-02T16-01-34Z/best_model.h5", package = "DeepG4")
+        model <- system.file("extdata", "DeepG4_ATAC_rescale_BW_by_bg_5kb_seuil_2_19_04_2021/2021-07-06T07-59-11Z/best_model.h5", package = "DeepG4")
         #Load model with keras (tensorflow must be installed as well)
         model <- keras::load_model_hdf5(model)
         Convolution <- keras::keras_model(inputs = model$input[[1]],

@@ -6,7 +6,7 @@
 \usage{
 DNAToNumerical(
   x,
-  tabv = c(N = 5, T = 4, G = 3, C = 2, A = 1),
+  tabv = c(T = 4, G = 3, C = 2, A = 1),
   lower.case = F,
   seq.size = 201
 )

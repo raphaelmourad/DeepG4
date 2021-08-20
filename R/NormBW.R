@@ -1,7 +1,7 @@
-#' Title
+#' Normalize a coverage file (from bigWig or bedGraph) using scales::rescale from a specific set of ranges to set values between [0,1]
 #'
-#' @param x
-#' @param binbed
+#' @param x An object of class GRanges, the coverage file to be normalized
+#' @param binbed An object of class GRanges, the genomic position used to normalize x.
 #'
 #' @return
 #' @export

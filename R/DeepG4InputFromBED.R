@@ -1,3 +1,17 @@
+#' Pre-Computing function of DeepG4. To use before DeepG4 main function
+#'
+#' @param BED An object of class GRanges.
+#' @param ATAC A character path of bigWig/bedGraph file, or an object of class GRanges/SimpleRleList.
+#' @param is.bw a boolean. Set to \code{TRUE} if you want to use rtracklayer::import.bw fonction, \code{FALSE} use rtracklayer::import.bedGraph.
+#' @param GENOME a BSgenome object containing  the DNA sequence of genome of interest.
+#' @param use.bg a boolean. Set to \code{TRUE} you want to normalize the accessibility using a windows background of windows_bg.
+#' @param windows_bg numeric value who define the windows use to get background signal.
+#' @param treshold_bg numeric value who set the treshold signal/background.
+#'
+#' @return a list(DNAStringSet,vector) with fasta sequence from GENOME of BED, and vector of accessibility of BED.
+#' @export
+#'
+#' @examples
 DeepG4InputFromBED <- function(BED = NULL,ATAC = NULL,is.bw = TRUE,GENOME = NULL,use.bg = TRUE,windows_bg=5000,treshold_bg = 2){
     if (is.null(GENOME)) {
         stop("GENOME must be provided (see ?DeePG4InputFromBED for accepted formats).",
