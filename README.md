@@ -111,23 +111,27 @@ head(predictions)
 ```
 
               [,1]
-    [1,] 0.8264647
-    [2,] 0.5786501
-    [3,] 0.9986098
-    [4,] 0.9999884
-    [5,] 0.9239593
-    [6,] 0.1403053
+    [1,] 0.8414769
+    [2,] 0.5075037
+    [3,] 0.9905243
+    [4,] 0.9991857
+    [5,] 0.9387835
+    [6,] 0.2330312
 
 ### Without accessbility
 
 You still can predict active G4 regions using only **DNA** sequences :
 
 ``` r
+library(rtracklayer)
+library(BSgenome.Hsapiens.UCSC.hg19)
 library(Biostrings)
 library(DeepG4)
 
 BED <- system.file("extdata", "test_G4_data.bed", package = "DeepG4")
 BED <- import.bed(BED)
+sequences <- getSeq(BSgenome.Hsapiens.UCSC.hg19,BED)
+
 
 predictions <- DeepG4(X=sequences)
 head(predictions)
@@ -187,6 +191,7 @@ res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  he
 
 ``` r
 library(Biostrings)
+library(rtracklayer)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(DeepG4)
 
@@ -206,14 +211,14 @@ res %>% dplyr::select(-seq) %>% group_by(seqnames) %>% dplyr::slice(1:2) %>%  he
 
     # A tibble: 6 x 5
     # Groups:   seqnames [3]
-      seqnames start   end width score
-         <int> <int> <int> <int> <dbl>
-    1        1  2421  2621   201 0.514
-    2        1  2461  2661   201 0.654
-    3        2  1841  2041   201 0.813
-    4        2  1861  2061   201 0.735
-    5        3   961  1161   201 0.579
-    6        3   981  1181   201 0.554
+      seqnames     start       end width score
+      <fct>        <int>     <int> <int> <dbl>
+    1 chr15     63569229  63569429   201 0.690
+    2 chr15     63569249  63569449   201 0.810
+    3 chr2     131850345 131850545   201 0.548
+    4 chr2     131850385 131850585   201 0.671
+    5 chr5      10562715  10562915   201 0.547
+    6 chr5      10562735  10562935   201 0.503
 
 ## Scan DeepG4 DNA motifs from the input sequences
 
@@ -246,6 +251,7 @@ dataset, you can do it by running our function `DeepG4` with
 library(Biostrings)
 library(DeepG4)
 library(rsample)
+library(rtracklayer)
 library(BSgenome.Hsapiens.UCSC.hg19)
 
 
