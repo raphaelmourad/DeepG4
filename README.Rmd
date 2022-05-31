@@ -35,12 +35,20 @@ _Vincent Rocher, Matthieu Genais, Elissar Nassereddine and Raphael Mourad_
 DeepG4 was built with `Keras 2.3.1` and `tensorflow 2.1.0`, but it
 should work with any version of theses libraries.
 
-A very convenient way to install keras and tensorflow is using `R`. The command line to install is from : [https://keras.rstudio.com/](https://keras.rstudio.com/).
+### Update 30/05/2022
+
+It seems that our model cannot be properly load so please install keras/tensorflow using the environment file provided :
+
+On a terminal:
+
+`conda env create -f environment.yml`
+
+On R: 
 
 ``` r
 install.packages("keras")
 library(keras)
-install_keras()
+reticulate::use_condaenv("DeepG4")
 ```
 
 This will provide you with default CPU installations of Keras and TensorFlow python packages (within a virtualenv) that can be used with or without R.

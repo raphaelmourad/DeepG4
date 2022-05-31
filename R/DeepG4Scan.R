@@ -122,7 +122,7 @@
     if(class(X.ATAC) == "SimpleRleList"){
         X.ATAC <- as(X.ATAC,"GRanges")
     }else if(class(X.ATAC) == "GRanges"){
-        if(!"score" %in% colnames(IRanges::values(X.ATAC))){
+        if(!"score" %in% colnames(values(X.ATAC))){
             stop("X.ATAC must be a GRanges object with a metadata column 'score'",
                  call. = FALSE)
         }

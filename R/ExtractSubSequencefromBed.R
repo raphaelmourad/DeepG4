@@ -17,7 +17,7 @@
 ExtractSubSequencefromBed <- function(x=NULL,x.atac=NULL,k = 20,GENOME=NULL,seq.size = 201,nb.threads=1,use.bg=T,windows_bg=5000,treshold_bg = 2){
     extend <- ((seq.size-1)/2)
     windows = IRanges::slidingWindows(x, width=k,step = k)
-    res <- mclapply(1:length(windows),function(i){
+    res <- parallel::mclapply(1:length(windows),function(i){
 
         swindows <- windows[[i]]
         end(swindows) <- BiocGenerics::start(swindows) + extend

@@ -84,7 +84,7 @@ DeepG4InputFromBED <- function(BED = NULL,ATAC = NULL,is.bw = TRUE,GENOME = NULL
     }else if(class(ATAC) == "SimpleRleList"){
         ATAC <- as(ATAC,"GRanges")
     }else if(class(ATAC) == "GRanges"){
-        if(!"score" %in% colnames(IRanges::values(ATAC))){
+        if(!"score" %in% colnames(values(ATAC))){
             stop("ATAC must be a GRanges object with a metadata column 'score'",
                  call. = FALSE)
         }

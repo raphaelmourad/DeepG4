@@ -28,13 +28,21 @@ built in keras+tensorflow and is wrapped in an R package.
 DeepG4 was built with `Keras 2.3.1` and `tensorflow 2.1.0`, but it
 should work with any version of theses libraries.
 
-A very convenient way to install keras and tensorflow is using `R`. The
-command line to install is from : <https://keras.rstudio.com/>.
+### Update 30/05/2022
+
+It seems that our model cannot be properly load so please install
+keras/tensorflow using the environment file provided :
+
+On a terminal:
+
+`conda env create -f environment.yml`
+
+On R:
 
 ``` r
 install.packages("keras")
 library(keras)
-install_keras()
+reticulate::use_condaenv("DeepG4")
 ```
 
 This will provide you with default CPU installations of Keras and
@@ -147,7 +155,7 @@ head(predictions)
 
 ## Advanced usage of DeepG4
 
-If you have a large sequence (&gt;201bp up to several Mbp), you can scan
+If you have a large sequence (\>201bp up to several Mbp), you can scan
 the sequence and predict the positions of active G4s within the
 sequence.
 
@@ -169,7 +177,7 @@ res <- DeepG4Scan(X = BED,X.ATAC=ATAC,k=20,treshold=0.5,GENOME=BSgenome.Hsapiens
 
 DeepG4Scan function scans each input sequence with a step of `k=20` and
 outputs for each input sequence the G4 positions (+/- 100bp) and the
-corresponding DeepG4 probabilities (&gt;= treshold).
+corresponding DeepG4 probabilities (\>= treshold).
 
 ``` r
 library(dplyr)
@@ -202,7 +210,7 @@ res <- DeepG4Scan(X = sequences,k=20,treshold=0.5)
 
 DeepG4Scan function scans each input sequence with a step of `k=20` and
 outputs for each input sequence the G4 positions (+/- 100bp) and the
-corresponding DeepG4 probabilities (&gt;= treshold).
+corresponding DeepG4 probabilities (\>= treshold).
 
 ``` r
 library(dplyr)
